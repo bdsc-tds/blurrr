@@ -1,3 +1,8 @@
+setClassUnion("NullOrMatrix", c("NULL", "matrix"))
+setClassUnion("NullOrCharacter", c("NULL", "character"))
+
+
+#' @export
 setClass(
   "VisiumInfo",
   slots = c(
@@ -7,15 +12,20 @@ setClass(
 )
 
 
+#' @export
 setClass(
   "XeniumMolecular",
   slots = c(
-    pos = "data.frame"
+    pos = "data.frame",
+    rotMtx = "NullOrMatrix",
+    alignedFile = "NullOrCharacter"
   )
 )
 setClassUnion("NullOrXeniumMolecular", c("NULL", "XeniumMolecular"))
 
 
+#' @export
+#' 
 #' @importClassesFrom SingleCellExperiment SingleCellExperiment
 setClass(
   "XeniumCell",
@@ -34,7 +44,7 @@ setClass(
     vsInfo = "VisiumInfo",
     xnCell = "NullOrXeniumCell",
     xnTrans = "NullOrXeniumMolecular",
-    toSpot = "logical",
-    toSubspot = "logical"
+    is2Spot = "logical",
+    is2Subspot = "logical"
   )
 )

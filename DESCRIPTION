@@ -1,5 +1,5 @@
 Package: BinXenium
-Title: Bin the Xenium data according to the matching Visium expetiment.
+Title: Bin Xenium data according to a matching Visium expetiment
 Version: 0.0.1
 Date: 2024-01-04
 Authors@R: c(
@@ -12,10 +12,22 @@ biocViews:
     Transcriptomics,
     GeneExpression,
     SingleCell
-Imports: 
+Depends:
+    R (>= 4.0.0),
+    SingleCellExperiment
+Imports:
+    S4Vectors,
+    rjson,
     dplyr (>= 1.0.0)
-Suggests: 
+Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.2.3
+Collate: 
+    'BinXenium-class.R'
+    'class-def.R'
+    'generic-def.R'
+    'BinXenium-slots.R'
+    'VisiumInfo-methods.R'
+    'get_rot_mtx.R'
