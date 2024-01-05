@@ -7,6 +7,8 @@ setClass(
   "VisiumInfo",
   slots = c(
     pos = "data.frame",
+    arrayDirec = "list",
+    imgRad = "numeric",
     scalef = "list"
   )
 )

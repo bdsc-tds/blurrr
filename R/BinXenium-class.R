@@ -178,6 +178,8 @@ BinXenium <- function(
 #' 
 #' @importFrom rjson fromJSON
 #' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr filter
 .load_visium_info <- function(vs.dir) {
   vs.dir <- file.path(vs.dir)
   
@@ -191,10 +193,22 @@ BinXenium <- function(
   # load tissue position
   pos <- .load_visium_tissue_pos(vs.dir)
   
+  # compute the directions of the coordinate system of array w.r.t. that of image
+  array.direc <- .compute_array_direction(pos)
+  
+  # compute the angle in radians between the coordinate systems of array and image
+  image.rad <- .compute_image_rad(pos)
+  
   # load scale factors
   scalef.file <- file.path(vs.dir, "scalefactors_json.json")
   assert_that(file.exists(scalef.file))
   scalef <- fromJSON(file = scalef.file)
+  
+  # only keep spots that are in tissue
+  pos <- pos %>%
+    filter(
+      in_tissue == 1
+    )
   
   # scale coordinates
   pos <- .scale_coords(
@@ -210,6 +224,8 @@ BinXenium <- function(
   new(
     "VisiumInfo",
     pos = pos,
+    arrayDirec = array.direc,
+    imgRad = image.rad,
     scalef = scalef
   )
 }
@@ -253,7 +269,94 @@ BinXenium <- function(
   }
   
   rownames(data) <- data$barcode
-  data[data$in_tissue > 0, ]
+  data
+}
+
+
+#' Compute the directions of the two axes of coordinate system of array with
+#' respect to those of image. The coordinate system of image is assumed left-
+#' handed.
+#' 
+#' @keywords internal
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr group_by ungroup mutate
+.compute_array_direction <- function(data) {
+  assert_that(
+    all(
+      c("array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres") %in% colnames(data)
+    )
+  )
+  
+  .data <- data %>%
+    group_by(array_row) %>%
+    mutate(
+      cor_col = cor(array_col, pxl_col_in_fullres)
+    ) %>%
+    ungroup() %>%
+    group_by(array_col) %>%
+    mutate(
+      cor_row = cor(array_row, pxl_row_in_fullres)
+    ) %>%
+    ungroup()
+  
+  assert_that(
+    min(.data$cor_row) * max(.data$cor_row) > 0,
+    min(.data$cor_col) * max(.data$cor_col) > 0
+  )
+  
+  list(
+    row = ifelse(min(.data$cor_row) > 0, 1, -1),
+    col = ifelse(min(.data$cor_col) > 0, 1, -1)
+  )
+}
+
+
+#' Compute the degree in radians between the coordinate systems of array and 
+#' image. The coordinate system of image is assumed left-handed.
+#' 
+#' The computed angle can be used to rotate the coordinate system of image to
+#' align with that of array.
+#' 
+#' For a left-handed coordinate system, rotating by a positive angle means to
+#' rotate clock-wisely, and vice versa. For a right-handed coordinate system,
+#' rotating by a positive angle means to rotate counterclock-wisely, and vice
+#' versa.
+#' 
+#' @keywords internal
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr filter arrange
+.compute_image_rad <- function(data) {
+  assert_that(
+    all(
+      c("array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres") %in% colnames(data)
+    )
+  )
+  
+  radians <- vapply(
+    unique(data$array_row),
+    function(x) {
+      .data <- data %>%
+        filter(
+          array_row == x
+        ) %>%
+        arrange(
+          array_col
+        )
+      
+      atan(
+        (.data$pxl_row_in_fullres[dim(.data)[1]] - .data$pxl_row_in_fullres[1]) / (.data$pxl_col_in_fullres[dim(.data)[1]] - .data$pxl_col_in_fullres[1])
+      )
+    },
+    FUN.VALUE = numeric(1)
+  )
+  
+  assert_that(min(radians) * max(radians) > 0)
+  
+  mean(radians)
 }
 
 
