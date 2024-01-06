@@ -7,7 +7,7 @@ BinXenium <- function(
     vs.dir,
     xn.dir,
     bin.mode = c("cell", "trans", "both"),
-    bin.level = c("spot", "subspot", "both"),
+    bin.level = c("spot", "subspot"),
     rot.mtx = NULL,
     rot.mtx.to = c("fullres", "hires", "lowres"),
     aligned.cells.file = NULL,
@@ -39,6 +39,7 @@ BinXenium <- function(
       aligned.coords.names = aligned.cells.coords.names,
       aligned.to = aligned.cells.to,
       is.cell = TRUE,
+      image.rad = get_imgRad(vs.info),
       scalef = list(
         hires = get_scalef(vs.info, "h"),
         lowres = get_scalef(vs.info, "l")
@@ -56,6 +57,7 @@ BinXenium <- function(
       aligned.coords.names = aligned.trans.coords.names,
       aligned.to = aligned.trans.to,
       is.cell = FALSE,
+      image.rad = get_imgRad(vs.info),
       scalef = list(
         hires = get_scalef(vs.info, "h"),
         lowres = get_scalef(vs.info, "l")
@@ -68,8 +70,7 @@ BinXenium <- function(
     vsInfo = vs.info,
     xnCell = xn.cell,
     xnTrans = xn.trans,
-    is2Spot = ifelse(bin.level %in% c("spot", "both"), TRUE, FALSE),
-    is2Subspot = ifelse(bin.level %in% c("subspot", "both"), TRUE, FALSE)
+    is2Subspot = (bin.level == "subspot")
   )
 }
 
@@ -213,11 +214,31 @@ BinXenium <- function(
   # scale coordinates
   pos <- .scale_coords(
     data = pos,
-    coord.names = c("pxl_row_in_fullres", "pxl_col_in_fullres"),
+    coord.names = get_coords_names(
+      is.xn = FALSE,
+      prefix = NULL,
+      use.names = "f"
+    )[[1]],
     avail = "fullres",
     scalef = list(
       hires = scalef$tissue_hires_scalef,
       lowres = scalef$tissue_lowres_scalef
+    )
+  )
+  
+  # align the coordinate system of image to that of array
+  pos <- .align_img2array(
+    data = pos,
+    radians = image.rad,
+    prev.cols = get_coords_names(
+      is.xn = FALSE,
+      prefix = NULL,
+      use.names = "f"
+    ),
+    transformed.cols = get_coords_names(
+      is.xn = FALSE,
+      prefix = "array_aligned",
+      use.names = "f"
     )
   )
   
@@ -453,6 +474,7 @@ BinXenium <- function(
     aligned.coords.names,
     aligned.to,
     is.cell,
+    image.rad,
     scalef = list(
       hires = 1,
       lowres = 1
@@ -460,11 +482,11 @@ BinXenium <- function(
 ) {
   sce <- .load_xenium2sce(xn.dir)
   
-  if (is.cell) {
-    coords.names <- c("x_centroid", "y_centroid")
-  } else {
-    coords.names <- c("x_location", "y_location")
-  }
+  coords.names <- get_coords_names(
+    is.xn = TRUE,
+    is.cell = is.cell,
+    use.names = "r"
+  )[[1]]
   
   new.coords.names <- paste(
     coords.names,
@@ -552,6 +574,24 @@ BinXenium <- function(
       aligned.to
     ),
     scalef = scalef
+  )
+  
+  # align the coordinate system of image to that of array
+  coords <- .align_img2array(
+    data = coords,
+    radians = image.rad,
+    prev.cols = get_coords_names(
+      is.xn = TRUE,
+      is.cell = is.cell,
+      prefix = NULL,
+      use.names = "f"
+    ),
+    transformed.cols = get_coords_names(
+      is.xn = TRUE,
+      is.cell = is.cell,
+      prefix = "array_aligned",
+      use.names = "f"
+    )
   )
   
   if (is.cell) {

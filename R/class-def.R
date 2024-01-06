@@ -46,7 +46,6 @@ setClass(
     vsInfo = "VisiumInfo",
     xnCell = "NullOrXeniumCell",
     xnTrans = "NullOrXeniumMolecular",
-    is2Spot = "logical",
     is2Subspot = "logical"
   )
 )

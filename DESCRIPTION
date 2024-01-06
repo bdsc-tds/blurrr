@@ -30,4 +30,5 @@ Collate:
     'generic-def.R'
     'BinXenium-slots.R'
     'VisiumInfo-methods.R'
-    'get_rot_mtx.R'
+    'align_img2array-utils.R'
+    'utils.R'

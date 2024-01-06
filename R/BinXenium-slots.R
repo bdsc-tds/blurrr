@@ -32,16 +32,6 @@ setMethod(
 #' 
 #' @export
 setMethod(
-  "is2Spot",
-  "BinXenium",
-  function(x) x@is2Spot
-)
-
-
-#' @include generic-def.R class-def.R
-#' 
-#' @export
-setMethod(
   "is2Subspot",
   "BinXenium",
   function(x) x@is2Subspot

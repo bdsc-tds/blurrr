@@ -39,10 +39,23 @@ setGeneric(
 
 #' @export
 setGeneric(
+  "get_arrayDirec",
+  function(x, key) standardGeneric("get_arrayDirec")
+)
+
+
+#' @export
+setGeneric(
+  "get_imgRad",
+  function(x) standardGeneric("get_imgRad")
+)
+
+
+#' @export
+setGeneric(
   "get_scalef",
   function(x, key) standardGeneric("get_scalef")
 )
-
 
 
 # `BinXenium` methods ---------------------------------------------
