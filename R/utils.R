@@ -1,9 +1,48 @@
+#' Create coordinates of points of a hexagon with respect to the coordinate
+#' system of array, assuming unit radius of the spot.
+#'
+#' Always starting from the positive direction of the y axis to the positive
+#' direction of the x axis, i.e., clockwise w.r.t. a right-handed coordinate
+#' system, or counterclockwise w.r.t. a left-handed coordinate system.
+#' 
+#' @keywords internal
+#' 
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr mutate lead
+.create_subspots <- function() {
+  data.frame(
+    subspot_id = seq_len(6),
+    subspot_id_bayesspace = c(1, 5, 3, 4, 6, 2),
+    subspot_rela_pxl_col = c(
+      0,
+      sqrt(3) / 2,
+      sqrt(3) / 2,
+      0,
+      -sqrt(3) / 2,
+      -sqrt(3) / 2
+    ),
+    subspot_rela_pxl_row = c(
+      1,
+      0.5,
+      -0.5,
+      -1,
+      -0.5,
+      0.5
+    )
+  ) %>%
+    mutate(
+      third_pt_id = lead(subspot_id, default = min(subspot_id))
+    )
+}
+
+
 #' @export
 #'
 #' @importFrom assertthat assert_that
 get_coords_names <- function(
     is.xn,
     is.cell = TRUE,
+    is.subspot = FALSE,
     prefix = NULL,
     use.names = c("r", "f", "h", "l")
 ) {
@@ -20,6 +59,11 @@ get_coords_names <- function(
     }
   } else {
     coords.names <- c(x = "pxl_col_in", y = "pxl_row_in")
+    
+    if (is.subspot) {
+      prefix = "subspot"
+      use.names = "fullres"
+    }
   }
   
   sapply(

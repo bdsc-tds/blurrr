@@ -1,41 +1,65 @@
-# `BinXenium` slots ---------------------------------------------
+# `BinXenium` methods ---------------------------------------------
+
+## getters ---------------------------------------------
 
 #' @export
 setGeneric(
-  "vsInfo",
-  function(x) standardGeneric("vsInfo")
+  "get_vsInfo",
+  function(x) standardGeneric("get_vsInfo")
 )
 
 
 #' @export
 setGeneric(
-  "xnCell",
-  function(x) standardGeneric("xnCell")
+  "get_xnCell",
+  function(x) standardGeneric("get_xnCell")
 )
 
 
 #' @export
 setGeneric(
-  "xnTrans",
-  function(x) standardGeneric("xnTrans")
+  "get_xnTrans",
+  function(x) standardGeneric("get_xnTrans")
 )
 
 
 #' @export
 setGeneric(
-  "is2Spot",
-  function(x) standardGeneric("is2Spot")
+  "get_is2Subspot",
+  function(x) standardGeneric("get_is2Subspot")
 )
 
 
 #' @export
 setGeneric(
-  "is2Subspot",
-  function(x) standardGeneric("is2Subspot")
+  "get_assignedXnCell",
+  function(x) standardGeneric("get_assignedXnCell")
+)
+
+
+#' @export
+setGeneric(
+  "get_assignedXnTrans",
+  function(x) standardGeneric("get_assignedXnTrans")
+)
+
+
+## others ---------------------------------------------
+
+#' @export
+setGeneric(
+  "assign2visium",
+  function(x, force = FALSE) standardGeneric("assign2visium")
 )
 
 
 # `VisiumInfo` methods ---------------------------------------------
+
+#' @export
+setGeneric(
+  "get_vsPos",
+  function(x) standardGeneric("get_vsPos")
+)
 
 #' @export
 setGeneric(
@@ -58,6 +82,71 @@ setGeneric(
 )
 
 
-# `BinXenium` methods ---------------------------------------------
+#' @export
+setGeneric(
+  "get_subspotPos",
+  function(x) standardGeneric("get_subspotPos")
+)
 
 
+# `XeniumMolecular` methods ---------------------------------------------
+
+#' @export
+setGeneric(
+  "get_xnPos",
+  function(x, is.cell) standardGeneric("get_xnPos")
+)
+
+
+#' @export
+setGeneric(
+  "get_xn_id",
+  function(x, is.cell) standardGeneric("get_xn_id")
+)
+
+
+# `AssignedXeniumMolecular` methods ---------------------------------------------
+
+#' @export
+setGeneric(
+  "get_assignment2Spots",
+  function(x, is.cell) standardGeneric("get_assignment2Spots")
+)
+
+
+#' @export
+setGeneric(
+  "get_ambiAssignment2Spots",
+  function(x, is.cell) standardGeneric("get_ambiAssignment2Spots")
+)
+
+
+#' @export
+setGeneric(
+  "get_countOfSpots",
+  function(x, is.cell) standardGeneric("get_countOfSpots")
+)
+
+#' @export
+setGeneric(
+  "get_assignment2Subspots",
+  function(x, is.cell) standardGeneric("get_assignment2Subspots")
+)
+
+#' @export
+setGeneric(
+  "get_ambiAssignment2Subspots",
+  function(x, is.cell) standardGeneric("get_ambiAssignment2Subspots")
+)
+
+#' @export
+setGeneric(
+  "get_countOfSubspots",
+  function(x, is.cell) standardGeneric("get_countOfSubspots")
+)
+
+#' @export
+setGeneric(
+  "get_propAssigned",
+  function(x, is.cell) standardGeneric("get_propAssigned")
+)

@@ -70,7 +70,9 @@ BinXenium <- function(
     vsInfo = vs.info,
     xnCell = xn.cell,
     xnTrans = xn.trans,
-    is2Subspot = (bin.level == "subspot")
+    is2Subspot = (bin.level == "subspot"),
+    assignedXnCell = NULL,
+    assignedXnTrans = NULL
   )
 }
 
@@ -232,7 +234,6 @@ BinXenium <- function(
     radians = image.rad,
     prev.cols = get_coords_names(
       is.xn = FALSE,
-      prefix = NULL,
       use.names = "f"
     ),
     transformed.cols = get_coords_names(
@@ -242,13 +243,102 @@ BinXenium <- function(
     )
   )
   
+  # create subspots in the style of BayesSpace under the coordinate system of image
+  subspot.pos <- .create_subspot_pos(
+    radians = image.rad,
+    radius = scalef$spot_diameter_fullres / 2,
+    array.direc = array.direc,
+    spot.coords = pos[c(
+      "barcode",
+      get_coords_names(
+        is.xn = FALSE,
+        use.names = "f"
+      )[[1]]
+    )]
+  )
+  
   new(
     "VisiumInfo",
     pos = pos,
     arrayDirec = array.direc,
     imgRad = image.rad,
-    scalef = scalef
+    scalef = scalef,
+    subspotPos = subspot.pos
   )
+}
+
+#' @keywords internal
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr mutate
+.create_subspot_pos <- function(
+    radians,
+    radius,
+    array.direc,
+    spot.coords
+) {
+  .spot.coords.names <- get_coords_names(
+    is.xn = FALSE,
+    use.names = "f"
+  )[[1]]
+  
+  assert_that(
+    is.list(array.direc),
+    all(c("col", "row") %in% names(array.direc)),
+    all(c("barcode", .spot.coords.names) %in% colnames(spot.coords))
+  )
+  
+  .spot.coords <- as.matrix(spot.coords[.spot.coords.names])
+  colnames(.spot.coords) <- .spot.coords.names
+  rownames(.spot.coords) <- spot.coords[["barcode"]]
+  
+  subspot.pos <- .create_subspots()
+  
+  .new.coords.names <- get_coords_names(
+    is.xn = FALSE,
+    prefix = "subspot",
+    use.names = "f"
+  )[[1]]
+  .new.coords.names.col <- .new.coords.names[["x"]]
+  .new.coords.names.row <- .new.coords.names[["y"]]
+  
+  # 1. make the coordinate system of array left-handed
+  subspot.pos <- subspot.pos %>%
+    mutate(
+      "{.new.coords.names.col}" := subspot_rela_pxl_col * array.direc$col,
+      "{.new.coords.names.row}" := subspot_rela_pxl_row * array.direc$row
+    )
+  
+  # 2. rotate the adjusted coordinate system in the other direction
+  .rotated.coords <- as.matrix(
+    subspot.pos[.new.coords.names]
+  ) %*% t(
+    get_rot_mtx(radians, is.rh = FALSE, is.clock = FALSE)
+  )
+  colnames(.rotated.coords) <- .new.coords.names
+  subspot.pos[.new.coords.names] <- .rotated.coords
+  
+  # 3. scale with the radius of the spot
+  subspot.pos[[.new.coords.names.col]] <- subspot.pos[[.new.coords.names.col]] * radius
+  subspot.pos[[.new.coords.names.row]] <- subspot.pos[[.new.coords.names.row]] * radius
+  
+  # 4. create coordinates of subspots for all spots
+  .all.subspot.pos <- lapply(
+    rownames(.spot.coords),
+    function(.row) {
+      .subspot.pos <- subspot.pos
+      .subspot.pos[[.new.coords.names.col]] <- .subspot.pos[[.new.coords.names.col]] + .spot.coords[.row, .spot.coords.names[["x"]]]
+      .subspot.pos[[.new.coords.names.row]] <- .subspot.pos[[.new.coords.names.row]] + .spot.coords[.row, .spot.coords.names[["y"]]]
+      .subspot.pos[["subspot_barcode"]] <- paste(.row, .subspot.pos[["subspot_id"]], sep = ":")
+      .subspot.pos[["subspot_barcode_bayesspace"]] <- paste(.row, .subspot.pos[["subspot_id_bayesspace"]], sep = ":")
+      .subspot.pos[["barcode"]] <- .row
+      
+      .subspot.pos
+    }
+  )
+  
+  do.call(rbind, .all.subspot.pos)
 }
 
 
@@ -334,11 +424,8 @@ BinXenium <- function(
 }
 
 
-#' Compute the degree in radians between the coordinate systems of array and 
-#' image. The coordinate system of image is assumed left-handed.
-#' 
-#' The computed angle can be used to rotate the coordinate system of image to
-#' align with that of array.
+#' Compute the degree in radians to align the coordinate systems of image to 
+#' that of array. The coordinate system of image is assumed left-handed.
 #' 
 #' For a left-handed coordinate system, rotating by a positive angle means to
 #' rotate clock-wisely, and vice versa. For a right-handed coordinate system,

@@ -1,4 +1,16 @@
-# For `VisiumInfo` ---------------------------------------------
+# getters ---------------------------------------------
+
+## For `VisiumInfo` ---------------------------------------------
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_vsPos",
+  c("VisiumInfo"),
+  function(x) x@pos
+)
+
 
 #' @include generic-def.R class-def.R
 #' 
@@ -63,7 +75,26 @@ setMethod(
 )
 
 
-# For `BinXenium` ---------------------------------------------
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_subspotPos",
+  "VisiumInfo",
+  function(x) x@subspotPos
+)
+
+
+## For `BinXenium` ---------------------------------------------
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_vsPos",
+  c("BinXenium"),
+  function(x) get_vsPos(get_vsInfo(x))
+)
 
 
 #' @include generic-def.R class-def.R
@@ -72,7 +103,7 @@ setMethod(
 setMethod(
   "get_arrayDirec",
   c("BinXenium", "character"),
-  function(x, key) get_arrayDirec(vsInfo(x), key)
+  function(x, key) get_arrayDirec(get_vsInfo(x), key)
 )
 
 
@@ -82,7 +113,7 @@ setMethod(
 setMethod(
   "get_imgRad",
   "BinXenium",
-  function(x) get_imgRad(vsInfo(x))
+  function(x) get_imgRad(get_vsInfo(x))
 )
 
 
@@ -92,5 +123,15 @@ setMethod(
 setMethod(
   "get_scalef",
   c("BinXenium", "character"),
-  function(x, key) get_scalef(vsInfo(x), key)
+  function(x, key) get_scalef(get_vsInfo(x), key)
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_subspotPos",
+  "BinXenium",
+  function(x) get_subspotPos(get_vsInfo(x))
 )
