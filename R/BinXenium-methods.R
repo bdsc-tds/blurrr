@@ -67,18 +67,13 @@ setMethod(
 #' @export
 setMethod(
   "assign2visium",
-  c("BinXenium", "missing"),
-  function(x) assign2visium(x, force = FALSE)
-)
-
-#' @include generic-def.R class-def.R
-#' 
-#' @export
-setMethod(
-  "assign2visium",
-  c("BinXenium", "logical"),
-  function(x, force) {
+  c("BinXenium", "numeric", "logical", "logical"),
+  function(x, cores, force = FALSE, verbose = TRUE) {
     if (!is.null(get_xnCell(x))) {
+      if (verbose) {
+        message("Assigning cells...")
+      }
+      
       x@assignedXnCell <- .assign2visium(
         assigned.xn = get_assignedXnCell(x),
         vs.pos = get_vsPos(x),
@@ -87,11 +82,17 @@ setMethod(
         subspot.pos = get_subspotPos(x),
         is.cell = TRUE,
         spot_radius = get_scalef(x, "d") / 2,
-        force = force
+        cores = cores,
+        force = force,
+        verbose = verbose
       )
     }
     
     if (!is.null(get_xnTrans(x))) {
+      if (verbose) {
+        message("Assigning transcripts...")
+      }
+      
       x@assignedXnTrans <- .assign2visium(
         assigned.xn = get_assignedXnTrans(x),
         vs.pos = get_vsPos(x),
@@ -100,10 +101,60 @@ setMethod(
         subspot.pos = get_subspotPos(x),
         is.cell = FALSE,
         spot_radius = get_scalef(x, "d") / 2,
-        force = force
+        cores = cores,
+        force = force,
+        verbose = verbose
       )
     }
     
     x
+  }
+)
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "assign2visium",
+  c("BinXenium", "numeric", "missing", "missing"),
+  function(x, cores, force = FALSE, verbose = TRUE) {
+    assign2visium(
+      x = x,
+      cores = cores,
+      force = FALSE,
+      verbose = TRUE
+    )
+  }
+)
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "assign2visium",
+  c("BinXenium", "numeric", "logical", "missing"),
+  function(x, cores, force, verbose = TRUE) {
+    assign2visium(
+      x = x,
+      cores = cores,
+      force = force,
+      verbose = TRUE
+    )
+  }
+)
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "assign2visium",
+  c("BinXenium", "numeric", "missing", "logical"),
+  function(x, cores, force = FALSE, verbose) {
+    assign2visium(
+      x = x,
+      cores = cores,
+      force = FALSE,
+      verbose = verbose
+    )
   }
 )

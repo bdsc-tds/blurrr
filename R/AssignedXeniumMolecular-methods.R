@@ -26,7 +26,7 @@ setMethod(
 setMethod(
   "get_countOfSpots",
   c("AssignedXeniumMolecular", "missing"),
-  function(x, is.cell) x@assignment2Spots
+  function(x, is.cell) x@countOfSpots
 )
 
 #' @include generic-def.R class-def.R
@@ -35,7 +35,7 @@ setMethod(
 setMethod(
   "get_assignment2Subspots",
   c("AssignedXeniumMolecular", "missing"),
-  function(x, is.cell) x@assignment2Spots
+  function(x, is.cell) x@assignment2Subspots
 )
 
 #' @include generic-def.R class-def.R
@@ -44,7 +44,7 @@ setMethod(
 setMethod(
   "get_ambiAssignment2Subspots",
   c("AssignedXeniumMolecular", "missing"),
-  function(x, is.cell) x@ambiAssignment2Spots
+  function(x, is.cell) x@ambiAssignment2Subspots
 )
 
 #' @include generic-def.R class-def.R
@@ -53,7 +53,7 @@ setMethod(
 setMethod(
   "get_countOfSubspots",
   c("AssignedXeniumMolecular", "missing"),
-  function(x, is.cell) x@assignment2Spots
+  function(x, is.cell) x@countOfSubspots
 )
 
 #' @include generic-def.R class-def.R
@@ -62,7 +62,7 @@ setMethod(
 setMethod(
   "get_propAssigned",
   c("AssignedXeniumMolecular", "missing"),
-  function(x, is.cell) x@assignment2Spots
+  function(x, is.cell) x@propAssigned
 )
 
 
@@ -76,9 +76,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_assignment2Spots(get_xnCell(x)))
+      return(get_assignment2Spots(get_assignedXnCell(x)))
     } else {
-      return(get_assignment2Spots(get_xnTrans(x)))
+      return(get_assignment2Spots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -91,9 +91,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_ambiAssignment2Spots(get_xnCell(x)))
+      return(get_ambiAssignment2Spots(get_assignedXnCell(x)))
     } else {
-      return(get_ambiAssignment2Spots(get_xnTrans(x)))
+      return(get_ambiAssignment2Spots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -106,9 +106,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_countOfSpots(get_xnCell(x)))
+      return(get_countOfSpots(get_assignedXnCell(x)))
     } else {
-      return(get_countOfSpots(get_xnTrans(x)))
+      return(get_countOfSpots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -121,9 +121,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_assignment2Subspots(get_xnCell(x)))
+      return(get_assignment2Subspots(get_assignedXnCell(x)))
     } else {
-      return(get_assignment2Subspots(get_xnTrans(x)))
+      return(get_assignment2Subspots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -136,9 +136,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_ambiAssignment2Subspots(get_xnCell(x)))
+      return(get_ambiAssignment2Subspots(get_assignedXnCell(x)))
     } else {
-      return(get_ambiAssignment2Subspots(get_xnTrans(x)))
+      return(get_ambiAssignment2Subspots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -151,9 +151,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_countOfSubspots(get_xnCell(x)))
+      return(get_countOfSubspots(get_assignedXnCell(x)))
     } else {
-      return(get_countOfSubspots(get_xnTrans(x)))
+      return(get_countOfSubspots(get_assignedXnTrans(x)))
     }
   }
 )
@@ -166,9 +166,9 @@ setMethod(
   c("BinXenium", "logical"),
   function(x, is.cell) {
     if (is.cell) {
-      return(get_propAssigned(get_xnCell(x)))
+      return(get_propAssigned(get_assignedXnCell(x)))
     } else {
-      return(get_propAssigned(get_xnTrans(x)))
+      return(get_propAssigned(get_assignedXnTrans(x)))
     }
   }
 )

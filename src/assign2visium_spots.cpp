@@ -4,10 +4,11 @@
 #include <algorithm>
 #include <vector>
 #include <map>
-// #include <indicators/cursor_control.hpp>
-// #include <indicators/progress_bar.hpp>
+#include <indicators/cursor_control.hpp>
+#include <indicators/progress_bar.hpp>
 
 #include "array_spots.hpp"
+#include "assignment.hpp"
 #include "utils.hpp"
 
 #ifdef _OPENMP
@@ -113,17 +114,62 @@ assign2visium_spots(
     const arma::mat &mole_coords,
     const arma::umat &array_coords,
     const arma::mat &img_coords,
-    const double spot_radius
+    const double spot_radius,
+    const int thread_num = 1,
+    const bool verbose = true
 ) {
-    std::vector<arma::uword> assigned_idx_moles, assigned_idx_spots, ambi_assigned_idx_moles, ambi_assigned_idx_spots;
-    std::map<arma::uword, arma::uword> assigned_spot_counts;
+    std::vector<int> thread_hits;
+
+#ifdef _OPENMP
+    omp_set_max_active_levels(2);
+    omp_set_num_threads(thread_num);
+
+    for (int i = 0; i < thread_num; i++)
+        thread_hits.emplace_back(0);
+
+    if (verbose) {
+        std::cout << "[DEBUG] The number of threads is " << thread_num << std::endl;
+    }
+#endif
+
+    Assignment<arma::uword, arma::uword, arma::uword> assignment;
 
     // build index of spots
     std::vector<ArraySpots> array_cols;
     std::vector<ArraySpots> array_rows;
     create_array_spots(array_coords, img_coords, array_cols, array_rows);
 
+    // progress bar
+    indicators::show_console_cursor(false);
+    indicators::ProgressBar pb{
+        indicators::option::MaxProgress{mole_coords.n_rows - 1},
+        indicators::option::BarWidth{50},
+        indicators::option::Start{" ["},
+        indicators::option::Fill{"█"},
+        indicators::option::Lead{"█"},
+        indicators::option::Remainder{"-"},
+        indicators::option::End{"]"},
+        indicators::option::PrefixText{"Binning to spots"},
+        indicators::option::ForegroundColor{indicators::Color::blue},
+        indicators::option::ShowElapsedTime{true},
+        indicators::option::ShowRemainingTime{true},
+        indicators::option::FontStyles{
+            std::vector<indicators::FontStyle>{indicators::FontStyle::bold}
+        }
+    };
+
+#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in)
+
+#pragma omp parallel for shared(pb, mole_coords, array_cols, array_rows, img_coords, spot_radius) reduction(red_assign:assignment)
     for (arma::uword mole_idx = 0; mole_idx < mole_coords.n_rows; mole_idx++) {
+
+#ifdef _OPENMP
+#pragma omp atomic update
+        thread_hits[omp_get_thread_num()]++;
+#endif
+
+        pb.tick();
+
         std::set<arma::uword> candidate_spots_col;
         std::set<arma::uword> candidate_spots_row;
 
@@ -162,68 +208,36 @@ assign2visium_spots(
             }
 
             if (__assigned_idx_moles.size() == 1) {
-                const auto it = assigned_spot_counts.find(__assigned_idx_spots[0]);
-                if (it != assigned_spot_counts.end()) {
-                    (it->second)++;
-                } else {
-                    assigned_spot_counts.emplace(std::make_pair(__assigned_idx_spots[0], 1));
-                }
-
-                assigned_idx_moles.emplace_back(std::move(__assigned_idx_moles[0]));
-                assigned_idx_spots.emplace_back(std::move(__assigned_idx_spots[0]));
-            } else if (__assigned_idx_moles.size() > 1) {
-                ambi_assigned_idx_moles.insert(
-                    ambi_assigned_idx_moles.end(),
-                    __assigned_idx_moles.begin(),
-                    __assigned_idx_moles.end()
+                assignment.add_assigned(
+                    __assigned_idx_moles[0],
+                    __assigned_idx_spots[0]
                 );
-                ambi_assigned_idx_spots.insert(
-                    ambi_assigned_idx_spots.end(),
-                    __assigned_idx_spots.begin(),
-                    __assigned_idx_spots.end()
+
+                assignment.add_assign_to_count(
+                    __assigned_idx_spots[0],
+                    1
+                );
+            } else if (__assigned_idx_moles.size() > 1) {
+                assignment.add_ambi_assigned(
+                    __assigned_idx_moles,
+                    __assigned_idx_spots
                 );
             }
         }
     }
 
-    // adjust to the R index and convert to matrix for return
-    if (assigned_idx_moles.size() != assigned_idx_spots.size()) {
-        throw std::runtime_error("Internal error.");
-    }
-    arma::umat assignment2spots(assigned_idx_moles.size(), 2);
+    indicators::show_console_cursor(true);
 
-    if (assigned_idx_moles.size() > 0) {
-        assignment2spots.col(0) = arma::uvec(assigned_idx_moles) + 1;
-        assignment2spots.col(1) = arma::uvec(assigned_idx_spots) + 1;
+#ifdef _OPENMP
+    if (verbose) {
+        print_thread_hits(thread_hits);
     }
-
-    if (ambi_assigned_idx_moles.size() != ambi_assigned_idx_spots.size()) {
-        throw std::runtime_error("Internal error.");
-    }
-    arma::umat ambi_assignment2spots(ambi_assigned_idx_moles.size(), 2);
-
-    if (ambi_assigned_idx_moles.size() > 0) {
-        ambi_assignment2spots.col(0) = arma::uvec(ambi_assigned_idx_moles) + 1;
-        ambi_assignment2spots.col(1) = arma::uvec(ambi_assigned_idx_spots) + 1;
-    }
-
-    arma::umat count_of_spots(assigned_spot_counts.size(), 2);
-    auto it = assigned_spot_counts.begin();
-    arma::uword row_idx = 0;
-    while (it != assigned_spot_counts.end()) {
-        const arma::urowvec __count_of_spots(
-            std::vector<arma::uword>{it->first + 1, it->second}
-        );
-        count_of_spots.row(row_idx) = std::move(__count_of_spots);
-
-        it++;
-        row_idx++;
-    }
+#endif
 
     return Rcpp::List::create(
-        Rcpp::_["assignment2Spots"] = assignment2spots,
-        Rcpp::_["ambiAssignment2Spots"] = ambi_assignment2spots,
-        Rcpp::_["countOfSpots"] = count_of_spots,
-        Rcpp::_["propAssigned"] = static_cast<double>(assigned_idx_moles.size()) / static_cast<double>(mole_coords.n_rows)
+        Rcpp::_["assignment2Spots"] = convert2arma_assigned(assignment),
+        Rcpp::_["ambiAssignment2Spots"] = convert2arma_ambi_assigned(assignment),
+        Rcpp::_["countOfSpots"] = convert2arma_assign_to_count(assignment),
+        Rcpp::_["propAssigned"] = static_cast<double>(assignment.get_assigned_num()) / static_cast<double>(mole_coords.n_rows)
     );
 }

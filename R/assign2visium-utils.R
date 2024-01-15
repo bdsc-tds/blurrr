@@ -10,7 +10,9 @@
     subspot.pos,
     is.cell,
     spot_radius,
-    force = FALSE
+    cores,
+    force = FALSE,
+    verbose = TRUE
 ) {
   mole.id <- ifelse(
     is.cell,
@@ -26,6 +28,11 @@
   to.subspot <- FALSE
   if (is2subspot && (force || to.spot || is.null(get_assignment2Subspots(assigned.xn)) || is.null(get_countOfSubspots(assigned.xn)))) {
     to.subspot <- TRUE
+  }
+  
+  binned.subspot.avail <- TRUE
+  if (is.null(assigned.xn)) {
+    binned.subspot.avail <- FALSE
   }
   
   if (to.spot) {
@@ -50,7 +57,9 @@
           use.names = "f"
         )[[1]]]
       ),
-      spot_radius = spot_radius
+      spot_radius = spot_radius,
+      thread_num = cores,
+      verbose = verbose
     )
     
     .assignment2Spots <- NULL
@@ -144,7 +153,9 @@
         )[[1]]]
       ),
       spot_barcodes = vs.pos[["barcode"]],
-      spot_radius = spot_radius
+      spot_radius = spot_radius,
+      thread_num = cores,
+      verbose = verbose
     )
     
     .assignment2Subspots <- NULL
@@ -207,11 +218,17 @@
       ambiAssignment2Subspots = .ambiAssignment2Subspots,
       countOfSubspots = .countOfSubspots
     )
-  } else {
+  } else if (binned.subspot.avail) {
     assigned2subspots <- list(
       assignment2Subspots = get_assignment2Subspots(assigned.xn),
       ambiAssignment2Subspots = get_ambiAssignment2Subspots(assigned.xn),
       countOfSubspots = get_countOfSubspots(assigned.xn)
+    )
+  } else {
+    assigned2subspots <- list(
+      assignment2Subspots = NULL,
+      ambiAssignment2Subspots = NULL,
+      countOfSubspots = NULL
     )
   }
   

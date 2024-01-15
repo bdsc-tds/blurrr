@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // assign2visium_spots
-Rcpp::List assign2visium_spots(const arma::mat& mole_coords, const arma::umat& array_coords, const arma::mat& img_coords, const double spot_radius);
-RcppExport SEXP _BinXenium_assign2visium_spots(SEXP mole_coordsSEXP, SEXP array_coordsSEXP, SEXP img_coordsSEXP, SEXP spot_radiusSEXP) {
+Rcpp::List assign2visium_spots(const arma::mat& mole_coords, const arma::umat& array_coords, const arma::mat& img_coords, const double spot_radius, const int thread_num, const bool verbose);
+RcppExport SEXP _BinXenium_assign2visium_spots(SEXP mole_coordsSEXP, SEXP array_coordsSEXP, SEXP img_coordsSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,13 +21,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::umat& >::type array_coords(array_coordsSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type img_coords(img_coordsSEXP);
     Rcpp::traits::input_parameter< const double >::type spot_radius(spot_radiusSEXP);
-    rcpp_result_gen = Rcpp::wrap(assign2visium_spots(mole_coords, array_coords, img_coords, spot_radius));
+    Rcpp::traits::input_parameter< const int >::type thread_num(thread_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(assign2visium_spots(mole_coords, array_coords, img_coords, spot_radius, thread_num, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 // assign2visium_subspots
-Rcpp::List assign2visium_subspots(const arma::mat& mole_coords, const Rcpp::CharacterVector& mole_assigned_barcodes, const arma::umat& subspot_ids, const arma::mat& img_subspot_coords, const Rcpp::CharacterVector& subspot_assigned_barcodes, const arma::mat& img_spot_coords, const Rcpp::CharacterVector& spot_barcodes, const double spot_radius);
-RcppExport SEXP _BinXenium_assign2visium_subspots(SEXP mole_coordsSEXP, SEXP mole_assigned_barcodesSEXP, SEXP subspot_idsSEXP, SEXP img_subspot_coordsSEXP, SEXP subspot_assigned_barcodesSEXP, SEXP img_spot_coordsSEXP, SEXP spot_barcodesSEXP, SEXP spot_radiusSEXP) {
+Rcpp::List assign2visium_subspots(const arma::mat& mole_coords, const Rcpp::CharacterVector& mole_assigned_barcodes, const arma::umat& subspot_ids, const arma::mat& img_subspot_coords, const Rcpp::CharacterVector& subspot_assigned_barcodes, const arma::mat& img_spot_coords, const Rcpp::CharacterVector& spot_barcodes, const double spot_radius, const int thread_num, const bool verbose);
+RcppExport SEXP _BinXenium_assign2visium_subspots(SEXP mole_coordsSEXP, SEXP mole_assigned_barcodesSEXP, SEXP subspot_idsSEXP, SEXP img_subspot_coordsSEXP, SEXP subspot_assigned_barcodesSEXP, SEXP img_spot_coordsSEXP, SEXP spot_barcodesSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -39,14 +41,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type img_spot_coords(img_spot_coordsSEXP);
     Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type spot_barcodes(spot_barcodesSEXP);
     Rcpp::traits::input_parameter< const double >::type spot_radius(spot_radiusSEXP);
-    rcpp_result_gen = Rcpp::wrap(assign2visium_subspots(mole_coords, mole_assigned_barcodes, subspot_ids, img_subspot_coords, subspot_assigned_barcodes, img_spot_coords, spot_barcodes, spot_radius));
+    Rcpp::traits::input_parameter< const int >::type thread_num(thread_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(assign2visium_subspots(mole_coords, mole_assigned_barcodes, subspot_ids, img_subspot_coords, subspot_assigned_barcodes, img_spot_coords, spot_barcodes, spot_radius, thread_num, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BinXenium_assign2visium_spots", (DL_FUNC) &_BinXenium_assign2visium_spots, 4},
-    {"_BinXenium_assign2visium_subspots", (DL_FUNC) &_BinXenium_assign2visium_subspots, 8},
+    {"_BinXenium_assign2visium_spots", (DL_FUNC) &_BinXenium_assign2visium_spots, 6},
+    {"_BinXenium_assign2visium_subspots", (DL_FUNC) &_BinXenium_assign2visium_subspots, 10},
     {NULL, NULL, 0}
 };
 

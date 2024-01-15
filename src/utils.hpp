@@ -2,8 +2,14 @@
 #define BINXENIUM_UTILS_HPP
 
 #include <RcppArmadillo.h>
+#include <csignal>
 #include <cmath>
 #include <vector>
+#include <iostream>
+
+#include "assignment.hpp"
+
+static volatile sig_atomic_t early_stop = 0;
 
 
 template <typename T1, typename T2>
@@ -64,5 +70,70 @@ is_in_subspot(
     return __m_1c * __2_1c >= 0;
 }
 
+template <typename T>
+void
+print_thread_hits(const std::vector<T> &arr) {
+    if (arr.size() > 0) {
+        for (size_t i = 0; i < arr.size(); i++)
+        std::cout << "[DEBUG] Thread " << i << " is hit " << arr[i]
+                    << " times.\n";
+        std::cout << std::endl;
+    }
+}
+
+static void
+sig_handler(int _) {
+    (void) _;
+    std::cout << "\nStopping..." << std::endl;
+
+    early_stop = 1;
+}
+
+template <typename T, typename C>
+arma::Mat<T>
+convert2arma_assigned(const Assignment<T, T, C> &val, const bool base_1 = true) {
+    arma::Mat<T> ret(val.get_assigned_num(), 2);
+
+    if (val.get_assigned_num() > 0) {
+        ret.col(0) = arma::Col<T>(val.get_assigned_mole()) + static_cast<T>(base_1);
+        ret.col(1) = arma::Col<T>(val.get_assigned_to()) + static_cast<T>(base_1);
+    }
+
+    return ret;
+}
+
+template <typename T, typename C>
+arma::Mat<T>
+convert2arma_ambi_assigned(const Assignment<T, T, C> &val, const bool base_1 = true) {
+    arma::Mat<T> ret(val.get_ambi_assigned_num(), 2);
+
+    if (val.get_ambi_assigned_num() > 0) {
+        ret.col(0) = arma::Col<T>(val.get_ambi_assigned_mole()) + static_cast<T>(base_1);
+        ret.col(1) = arma::Col<T>(val.get_ambi_assigned_to()) + static_cast<T>(base_1);
+    }
+
+    return ret;
+}
+
+template <typename T, typename S>
+arma::Mat<T>
+convert2arma_assign_to_count(const Assignment<S, T, T> &val, const bool base_1 = true) {
+    arma::Mat<T> ret(val.get_assign_to_count_num(), 2);
+    const auto assign_to_count = val.get_assign_to_count();
+
+    auto it = assign_to_count.begin();
+    T row_idx = 0;
+    while (it != assign_to_count.end()) {
+        const arma::Row<T> __count(
+            std::vector<T>{it->first + static_cast<T>(base_1), it->second}
+        );
+        ret.row(row_idx) = std::move(__count);
+
+        it++;
+        row_idx++;
+    }
+
+    return ret;
+}
 
 #endif // BINXENIUM_UTILS_HPP

@@ -5,11 +5,12 @@
 #include <vector>
 #include <map>
 #include <string>
-// #include <indicators/cursor_control.hpp>
-// #include <indicators/progress_bar.hpp>
+#include <indicators/cursor_control.hpp>
+#include <indicators/progress_bar.hpp>
 
 #include "spot_subspots.hpp"
 #include "subspots.hpp"
+#include "assignment.hpp"
 #include "utils.hpp"
 
 #ifdef _OPENMP
@@ -89,8 +90,24 @@ assign2visium_subspots(
     const Rcpp::CharacterVector &subspot_assigned_barcodes,
     const arma::mat &img_spot_coords,
     const Rcpp::CharacterVector &spot_barcodes,
-    const double spot_radius
+    const double spot_radius,
+    const int thread_num,
+    const bool verbose
 ) {
+    std::vector<int> thread_hits;
+
+#ifdef _OPENMP
+    omp_set_max_active_levels(2);
+    omp_set_num_threads(thread_num);
+
+    for (int i = 0; i < thread_num; i++)
+        thread_hits.emplace_back(0);
+
+    if (verbose) {
+        std::cout << "[DEBUG] The number of threads is " << thread_num << std::endl;
+    }
+#endif
+
     if (mole_coords.n_rows != mole_assigned_barcodes.length() || mole_coords.n_cols != 2) {
         throw std::invalid_argument("Invalid arguments.");
     }
@@ -103,8 +120,7 @@ assign2visium_subspots(
         throw std::invalid_argument("Invalid arguments.");
     }
 
-    std::vector<arma::uword> assigned_idx_moles, assigned_idx_subspots, ambi_assigned_idx_moles, ambi_assigned_idx_subspots;
-    std::map<arma::uword, arma::uword> assigned_subspot_counts;
+    Assignment<arma::uword, arma::uword, arma::uword> assignment;
 
     // build the index of spots to extract the coordinates in `img_spot_coords`
     std::map<std::string, arma::uword> spot_map;
@@ -119,8 +135,38 @@ assign2visium_subspots(
         spot_subspot_map
     );
 
+    // progress bar
+    indicators::show_console_cursor(false);
+    indicators::ProgressBar pb{
+        indicators::option::MaxProgress{mole_coords.n_rows - 1},
+        indicators::option::BarWidth{50},
+        indicators::option::Start{" ["},
+        indicators::option::Fill{"█"},
+        indicators::option::Lead{"█"},
+        indicators::option::Remainder{"-"},
+        indicators::option::End{"]"},
+        indicators::option::PrefixText{"Binning to subspots"},
+        indicators::option::ForegroundColor{indicators::Color::blue},
+        indicators::option::ShowElapsedTime{true},
+        indicators::option::ShowRemainingTime{true},
+        indicators::option::FontStyles{
+            std::vector<indicators::FontStyle>{indicators::FontStyle::bold}
+        }
+    };
+
+#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in)
+
     // assign molecules to subspots
+#pragma omp parallel for shared(pb, mole_coords, spot_map, spot_subspot_map, mole_assigned_barcodes, img_spot_coords, spot_radius) reduction(red_assign:assignment)
     for (arma::uword idx = 0; idx < mole_coords.n_rows; idx++) {
+
+#ifdef _OPENMP
+#pragma omp atomic update
+        thread_hits[omp_get_thread_num()]++;
+#endif
+
+        pb.tick();
+
         const auto it_spot = spot_map.find(
             static_cast<std::string>(mole_assigned_barcodes[idx])
         );
@@ -169,68 +215,34 @@ assign2visium_subspots(
         if (__assigned_idx_subspots.size() == 0) {
             throw std::runtime_error("Unable to assign to any subspots!");
         } else if (__assigned_idx_subspots.size() == 1) {
-            const auto it = assigned_subspot_counts.find(__assigned_idx_subspots[0]);
-            if (it != assigned_subspot_counts.end()) {
-                (it->second)++;
-            } else {
-                assigned_subspot_counts.emplace(
-                    std::make_pair(__assigned_idx_subspots[0], 1)
+            assignment.add_assigned(
+                    __assigned_idx_moles[0],
+                    __assigned_idx_subspots[0]
                 );
-            }
 
-            assigned_idx_moles.emplace_back(std::move(__assigned_idx_moles[0]));
-            assigned_idx_subspots.emplace_back(std::move(__assigned_idx_subspots[0]));
+                assignment.add_assign_to_count(
+                    __assigned_idx_subspots[0],
+                    1
+                );
         } else if (__assigned_idx_subspots.size() > 1) {
-            ambi_assigned_idx_moles.insert(
-                ambi_assigned_idx_moles.end(),
-                __assigned_idx_moles.begin(),
-                __assigned_idx_moles.end()
-            );
-            ambi_assigned_idx_subspots.insert(
-                ambi_assigned_idx_subspots.end(),
-                __assigned_idx_subspots.begin(),
-                __assigned_idx_subspots.end()
-            );
+            assignment.add_ambi_assigned(
+                    __assigned_idx_moles,
+                    __assigned_idx_subspots
+                );
         }
     }
 
-    // adjust to the R index and convert to matrix for return
-    if (assigned_idx_moles.size() != assigned_idx_subspots.size()) {
-        throw std::runtime_error("Internal error.");
-    }
-    arma::umat assignment2subspots(assigned_idx_moles.size(), 2);
+    indicators::show_console_cursor(true);
 
-    if (assigned_idx_moles.size() > 0) {
-        assignment2subspots.col(0) = arma::uvec(assigned_idx_moles) + 1;
-        assignment2subspots.col(1) = arma::uvec(assigned_idx_subspots) + 1;
+#ifdef _OPENMP
+    if (verbose) {
+        print_thread_hits(thread_hits);
     }
-
-    if (ambi_assigned_idx_moles.size() != ambi_assigned_idx_subspots.size()) {
-        throw std::invalid_argument("Internal error.");
-    }
-    arma::umat ambi_assignment2subspots(ambi_assigned_idx_moles.size(), 2);
-
-    if (ambi_assigned_idx_moles.size() > 0) {
-        ambi_assignment2subspots.col(0) = arma::uvec(ambi_assigned_idx_moles) + 1;
-        ambi_assignment2subspots.col(1) = arma::uvec(ambi_assigned_idx_subspots) + 1;
-    }
-
-    arma::umat count_of_subspots(assigned_subspot_counts.size(), 2);
-    auto it = assigned_subspot_counts.begin();
-    arma::uword row_idx = 0;
-    while (it != assigned_subspot_counts.end()) {
-        const arma::urowvec __count_of_subspots(
-            std::vector<arma::uword>{it->first + 1, it->second}
-        );
-        count_of_subspots.row(row_idx) = std::move(__count_of_subspots);
-
-        it++;
-        row_idx++;
-    }
+#endif
 
     return Rcpp::List::create(
-        Rcpp::_["assignment2Subspots"] = assignment2subspots,
-        Rcpp::_["ambiAssignment2Subspots"] = ambi_assignment2subspots,
-        Rcpp::_["countOfSubspots"] = count_of_subspots
+        Rcpp::_["assignment2Subspots"] = convert2arma_assigned(assignment),
+        Rcpp::_["ambiAssignment2Subspots"] = convert2arma_ambi_assigned(assignment),
+        Rcpp::_["countOfSubspots"] = convert2arma_assign_to_count(assignment)
     );
 }

@@ -49,7 +49,7 @@ setGeneric(
 #' @export
 setGeneric(
   "assign2visium",
-  function(x, force = FALSE) standardGeneric("assign2visium")
+  function(x, cores, force = FALSE, verbose = TRUE) standardGeneric("assign2visium")
 )
 
 
