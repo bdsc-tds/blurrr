@@ -1,13 +1,13 @@
 # getters ---------------------------------------------
 
-## For `XeniumMolecular` ---------------------------------------------
+## For `XeniumMolecule` ---------------------------------------------
 
 #' @include generic-def.R class-def.R
 #' 
 #' @export
 setMethod(
   "get_xnPos",
-  c("XeniumMolecular", "missing"),
+  c("XeniumMolecule", "missing"),
   function(x, is.cell) x@pos
 )
 
@@ -17,7 +17,7 @@ setMethod(
 #' @export
 setMethod(
   "get_xn_id",
-  c("XeniumMolecular", "missing"),
+  c("XeniumMolecule", "missing"),
   function(x, is.cell) get_xnPos(x)$transcript_id
 )
 

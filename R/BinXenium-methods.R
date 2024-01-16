@@ -68,7 +68,7 @@ setMethod(
 setMethod(
   "assign2visium",
   c("BinXenium", "numeric", "logical", "logical"),
-  function(x, cores, force = FALSE, verbose = TRUE) {
+  function(x, cores, force, verbose) {
     if (!is.null(get_xnCell(x))) {
       if (verbose) {
         message("Assigning cells...")
@@ -154,6 +154,150 @@ setMethod(
       x = x,
       cores = cores,
       force = FALSE,
+      verbose = verbose
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "numeric", "logical", "logical"),
+  function(x, dirname, cores, cache, verbose) {
+    dir.create(file.path(dirname), showWarnings = FALSE)
+    
+    if (cache) {
+      saveRDS(
+        object = x,
+        file = file.path(dirname, "bin_xenium.rds")
+      )
+    }
+    
+    if (!is.null(get_xnCell(x)) && !is.null(get_assignedXnCell(x))) {
+      .save2disk_cell(
+        xn.sce = get_xn_sce(x),
+        assigned.xn.cell = get_assignedXnCell(x),
+        dirname = dirname,
+        is.subspot = get_is2Subspot(x),
+        cores = cores,
+        verbose = verbose
+      )
+    }
+    
+    if (!is.null(get_xnTrans(x)) && !is.null(get_assignedXnTrans(x))) {
+      NULL
+    }
+    
+    invisible(NULL)
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "numeric", "logical", "missing"),
+  function(x, dirname, cores, cache, verbose = TRUE) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = cores,
+      cache = cache,
+      verbose = TRUE
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "numeric", "missing", "missing"),
+  function(x, dirname, cores, cache = FALSE, verbose = TRUE) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = cores,
+      cache = FALSE,
+      verbose = TRUE
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "missing", "logical", "missing"),
+  function(x, dirname, cores = 1, cache, verbose = TRUE) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = 1,
+      cache = cache,
+      verbose = TRUE
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "missing", "missing", "missing"),
+  function(x, dirname, cores = 1, cache = FALSE, verbose = TRUE) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = 1,
+      cache = FALSE,
+      verbose = TRUE
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "missing", "logical", "numeric"),
+  function(x, dirname, cores = 1, cache, verbose) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = 1,
+      cache = cache,
+      verbose = verbose
+    )
+  }
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "save2disk",
+  c("BinXenium", "character", "missing", "missing", "numeric"),
+  function(x, dirname, cores = 1, cache = FALSE, verbose) {
+    save2disk(
+      x = x,
+      dirname = dirname,
+      cores = 1,
+      cache = cache,
       verbose = verbose
     )
   }

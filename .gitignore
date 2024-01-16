@@ -48,6 +48,10 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
+**/*.o
+**/*.so
+**/*.dylib
+**/*.dll
 **/*.Rproj
 **/__test
 **/Read-and-delete-me

@@ -18,14 +18,14 @@ setClass(
 
 #' @export
 setClass(
-  "XeniumMolecular",
+  "XeniumMolecule",
   slots = c(
     pos = "data.frame",
     rotMtx = "NullOrMatrix",
     alignedFile = "NullOrCharacter"
   )
 )
-setClassUnion("NullOrXeniumMolecular", c("NULL", "XeniumMolecular"))
+setClassUnion("NullOrXeniumMolecule", c("NULL", "XeniumMolecule"))
 
 
 #' @export
@@ -36,14 +36,14 @@ setClass(
   slots = c(
     sce = "SingleCellExperiment"
   ),
-  contains = c("XeniumMolecular")
+  contains = c("XeniumMolecule")
 )
 setClassUnion("NullOrXeniumCell", c("NULL", "XeniumCell"))
 
 
 #' @export
 setClass(
-  "AssignedXeniumMolecular",
+  "AssignedXeniumMolecule",
   slots = c(
     assignment2Spots = "NullOrDataFrame",
     ambiAssignment2Spots = "NullOrDataFrame",
@@ -54,7 +54,7 @@ setClass(
     propAssigned = "numeric"
   )
 )
-setClassUnion("NullOrAssignedXeniumMolecular", c("NULL", "AssignedXeniumMolecular"))
+setClassUnion("NullOrAssignedXeniumMolecule", c("NULL", "AssignedXeniumMolecule"))
 
 
 #' @export
@@ -63,9 +63,9 @@ setClass(
   slots = c(
     vsInfo = "VisiumInfo",
     xnCell = "NullOrXeniumCell",
-    xnTrans = "NullOrXeniumMolecular",
+    xnTrans = "NullOrXeniumMolecule",
     is2Subspot = "logical",
-    assignedXnCell = "NullOrAssignedXeniumMolecular",
-    assignedXnTrans = "NullOrAssignedXeniumMolecular"
+    assignedXnCell = "NullOrAssignedXeniumMolecule",
+    assignedXnTrans = "NullOrAssignedXeniumMolecule"
   )
 )

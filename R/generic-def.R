@@ -53,6 +53,13 @@ setGeneric(
 )
 
 
+#' @export
+setGeneric(
+  "save2disk",
+  function(x, dirname, cores = 1, cache = FALSE, verbose = TRUE) standardGeneric("save2disk")
+)
+
+
 # `VisiumInfo` methods ---------------------------------------------
 
 #' @export
@@ -89,7 +96,7 @@ setGeneric(
 )
 
 
-# `XeniumMolecular` methods ---------------------------------------------
+# `XeniumMolecule` methods ---------------------------------------------
 
 #' @export
 setGeneric(
@@ -105,7 +112,16 @@ setGeneric(
 )
 
 
-# `AssignedXeniumMolecular` methods ---------------------------------------------
+# `XeniumCell` methods ---------------------------------------------
+
+#' @export
+setGeneric(
+  "get_xn_sce",
+  function(x) standardGeneric("get_xn_sce")
+)
+
+
+# `AssignedXeniumMolecule` methods ---------------------------------------------
 
 #' @export
 setGeneric(

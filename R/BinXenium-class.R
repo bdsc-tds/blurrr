@@ -15,7 +15,8 @@ BinXenium <- function(
     aligned.cells.coords.names = c(x = "x_centroid", y = "y_centroid"),
     aligned.trans.coords.names = c(x = "x_location", y = "y_location"),
     aligned.cells.to = c("fullres", "hires", "lowres"),
-    aligned.trans.to = aligned.cells.to
+    aligned.trans.to = aligned.cells.to,
+    dbg.load.trans = Inf
 ) {
   assert_that(
     !all(is.null(c(rot.mtx, aligned.cells.file, aligned.trans.file)))
@@ -61,7 +62,8 @@ BinXenium <- function(
       scalef = list(
         hires = get_scalef(vs.info, "h"),
         lowres = get_scalef(vs.info, "l")
-      )
+      ),
+      dbg.load.row.num = dbg.load.trans
     )
   }
   
@@ -565,7 +567,8 @@ BinXenium <- function(
     scalef = list(
       hires = 1,
       lowres = 1
-    )
+    ),
+    dbg.load.row.num = Inf
 ) {
   sce <- .load_xenium2sce(xn.dir)
   
@@ -604,6 +607,7 @@ BinXenium <- function(
     
     raw.coords <- fread(
       file = molecular_file,
+      nrows = dbg.load.row.num,
       stringsAsFactors = FALSE,
       data.table = FALSE
     )
@@ -694,7 +698,7 @@ BinXenium <- function(
   } else {
     return(
       new(
-        "XeniumMolecular",
+        "XeniumMolecule",
         pos = coords,
         rotMtx = rot.mtx,
         alignedFile = aligned.file

@@ -1,13 +1,13 @@
 # getters ---------------------------------------------
 
-## For `AssignedXeniumMolecular` ---------------------------------------------
+## For `AssignedXeniumMolecule` ---------------------------------------------
 
 #' @include generic-def.R class-def.R
 #' 
 #' @export
 setMethod(
   "get_assignment2Spots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@assignment2Spots
 )
 
@@ -16,7 +16,7 @@ setMethod(
 #' @export
 setMethod(
   "get_ambiAssignment2Spots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@ambiAssignment2Spots
 )
 
@@ -25,7 +25,7 @@ setMethod(
 #' @export
 setMethod(
   "get_countOfSpots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@countOfSpots
 )
 
@@ -34,7 +34,7 @@ setMethod(
 #' @export
 setMethod(
   "get_assignment2Subspots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@assignment2Subspots
 )
 
@@ -43,7 +43,7 @@ setMethod(
 #' @export
 setMethod(
   "get_ambiAssignment2Subspots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@ambiAssignment2Subspots
 )
 
@@ -52,7 +52,7 @@ setMethod(
 #' @export
 setMethod(
   "get_countOfSubspots",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@countOfSubspots
 )
 
@@ -61,7 +61,7 @@ setMethod(
 #' @export
 setMethod(
   "get_propAssigned",
-  c("AssignedXeniumMolecular", "missing"),
+  c("AssignedXeniumMolecule", "missing"),
   function(x, is.cell) x@propAssigned
 )
 

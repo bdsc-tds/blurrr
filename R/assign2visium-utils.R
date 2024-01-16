@@ -233,7 +233,7 @@
   }
   
   new(
-    "AssignedXeniumMolecular",
+    "AssignedXeniumMolecule",
     assignment2Spots = assigned2spots$assignment2Spots,
     ambiAssignment2Spots = assigned2spots$ambiAssignment2Spots,
     countOfSpots = assigned2spots$countOfSpots,
