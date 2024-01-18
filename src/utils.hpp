@@ -2,14 +2,10 @@
 #define BINXENIUM_UTILS_HPP
 
 #include <RcppArmadillo.h>
-#include <csignal>
 #include <cmath>
 #include <vector>
-#include <iostream>
 
 #include "assignment.hpp"
-
-static volatile sig_atomic_t early_stop = 0;
 
 
 template <typename T1, typename T2>
@@ -70,23 +66,37 @@ is_in_subspot(
     return __m_1c * __2_1c >= 0;
 }
 
+template <typename T1, typename T2, typename T3>
+void build_index(
+    const T1 &vec,
+    std::map<T2, T3> &idx
+) {
+    if (idx.size() > 0) idx.clear();
+
+    for (T3 i = 0; i < static_cast<T3>(vec.size()); i++) {
+        const auto it = idx.find(static_cast<T2>(vec[i]));
+
+        if (it == idx.end()) {
+            idx.emplace(std::make_pair(
+                static_cast<T2>(vec[i]),
+                i
+            ));
+        } else {
+            throw std::invalid_argument("Found duplicate elements.");
+        }
+    }
+}
+
 template <typename T>
 void
 print_thread_hits(const std::vector<T> &arr) {
     if (arr.size() > 0) {
-        for (size_t i = 0; i < arr.size(); i++)
-        std::cout << "[DEBUG] Thread " << i << " is hit " << arr[i]
-                    << " times.\n";
+        for (size_t i = 0; i < arr.size(); i++) {
+            std::cout << "[DEBUG] Thread " << i << " is hit " << arr[i] << " times.\n";
+        }
+        
         std::cout << std::endl;
     }
-}
-
-static void
-sig_handler(int _) {
-    (void) _;
-    std::cout << "\nStopping..." << std::endl;
-
-    early_stop = 1;
 }
 
 template <typename T, typename C>

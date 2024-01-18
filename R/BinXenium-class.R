@@ -8,6 +8,7 @@ BinXenium <- function(
     xn.dir,
     bin.mode = c("cell", "trans", "both"),
     bin.level = c("spot", "subspot"),
+    rm.feat.in.trans.pat = c("^NegControl.*", "^BLANK.*"),
     rot.mtx = NULL,
     rot.mtx.to = c("fullres", "hires", "lowres"),
     aligned.cells.file = NULL,
@@ -34,6 +35,7 @@ BinXenium <- function(
   if (bin.mode %in% c("cell", "both")) {
     xn.cell <- .load_xenium_molecular(
       xn.dir = xn.dir,
+      rm.feat.in.trans.pat = NULL,
       rot.mtx = rot.mtx,
       rot.mtx.to = rot.mtx.to,
       aligned.file = aligned.cells.file,
@@ -52,6 +54,7 @@ BinXenium <- function(
   if (bin.mode %in% c("trans", "both")) {
     xn.trans <- .load_xenium_molecular(
       xn.dir = xn.dir,
+      rm.feat.in.trans.pat = rm.feat.in.trans.pat,
       rot.mtx = rot.mtx,
       rot.mtx.to = rot.mtx.to,
       aligned.file = aligned.trans.file,
@@ -553,10 +556,11 @@ BinXenium <- function(
 #' @importFrom assertthat assert_that
 #' @importFrom data.table fread
 #' @importFrom magrittr `%>%`
-#' @importFrom dplyr left_join rename filter mutate
+#' @importFrom dplyr left_join rename mutate
 #' @importFrom SummarizedExperiment rowData
 .load_xenium_molecular <- function(
     xn.dir,
+    rm.feat.in.trans.pat,
     rot.mtx,
     rot.mtx.to,
     aligned.file,
@@ -570,7 +574,11 @@ BinXenium <- function(
     ),
     dbg.load.row.num = Inf
 ) {
-  sce <- .load_xenium2sce(xn.dir)
+  if (is.cell) {
+    sce <- .load_xenium2sce(xn.dir)
+  }
+  
+  id <- ifelse(is.cell, "cell_id", "transcript_id")
   
   coords.names <- get_coords_names(
     is.xn = TRUE,
@@ -612,13 +620,15 @@ BinXenium <- function(
       data.table = FALSE
     )
     
-    id <- ifelse(is.cell, "cell_id", "transcript_id")
-    
     if (!is.cell) {
+      if (!is.null(rm.feat.in.trans.pat) && length(rm.feat.in.trans.pat) > 0) {
+        raw.coords <- raw.coords[!grepl(
+          paste(rm.feat.in.trans.pat, collapse = "|"),
+          raw.coords$feature_name
+        ), ]
+      }
+      
       raw.coords <- raw.coords %>%
-        filter(
-          feature_name %in% rowData(sce)$gene_name
-        ) %>%
         mutate(
           transcript_id = as.character(transcript_id)
         )
@@ -653,6 +663,20 @@ BinXenium <- function(
         "{new.coords.names[1]}" := {{aligned.coords.names.x}},
         "{new.coords.names[2]}" := {{aligned.coords.names.y}}
       )
+    
+    if (!is.cell) {
+      if (!is.null(rm.feat.in.trans.pat) && length(rm.feat.in.trans.pat) > 0) {
+        coords <- coords[!grepl(
+          paste(rm.feat.in.trans.pat, sep = "|"),
+          coords$feature_name
+        ), ]
+      }
+      
+      coords <- coords %>%
+        mutate(
+          transcript_id = as.character(transcript_id)
+        )
+    }
   }
   
   # scale coordinates

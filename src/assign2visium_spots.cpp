@@ -158,7 +158,7 @@ assign2visium_spots(
         }
     };
 
-#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in)
+#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in) initializer(omp_priv = omp_orig)
 
 #pragma omp parallel for shared(pb, mole_coords, array_cols, array_rows, img_coords, spot_radius) reduction(red_assign:assignment)
     for (arma::uword mole_idx = 0; mole_idx < mole_coords.n_rows; mole_idx++) {

@@ -163,11 +163,15 @@ setMethod(
 #' @include generic-def.R class-def.R
 #' 
 #' @export
+#' 
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr select
 setMethod(
   "save2disk",
   c("BinXenium", "character", "numeric", "logical", "logical"),
   function(x, dirname, cores, cache, verbose) {
     dir.create(file.path(dirname), showWarnings = FALSE)
+    dirname <- normalizePath(dirname)
     
     if (cache) {
       saveRDS(
@@ -177,18 +181,33 @@ setMethod(
     }
     
     if (!is.null(get_xnCell(x)) && !is.null(get_assignedXnCell(x))) {
-      .save2disk_cell(
-        xn.sce = get_xn_sce(x),
-        assigned.xn.cell = get_assignedXnCell(x),
+      .save2disk(
+        assigned.xn = get_assignedXnCell(x),
         dirname = dirname,
+        is.cell = TRUE,
         is.subspot = get_is2Subspot(x),
+        xn.sce = get_xn_sce(x),
         cores = cores,
         verbose = verbose
       )
     }
     
     if (!is.null(get_xnTrans(x)) && !is.null(get_assignedXnTrans(x))) {
-      NULL
+      xn.pos = get_xnPos(x, is.cell = FALSE) %>%
+        select(
+          transcript_id,
+          feature_name
+        )
+      
+      .save2disk(
+        assigned.xn = get_assignedXnTrans(x),
+        dirname = dirname,
+        is.cell = FALSE,
+        is.subspot = get_is2Subspot(x),
+        xn.pos = xn.pos,
+        cores = cores,
+        verbose = verbose
+      )
     }
     
     invisible(NULL)
@@ -297,7 +316,7 @@ setMethod(
       x = x,
       dirname = dirname,
       cores = 1,
-      cache = cache,
+      cache = FALSE,
       verbose = verbose
     )
   }

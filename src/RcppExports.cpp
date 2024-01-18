@@ -47,10 +47,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// bin_transcripts
+arma::umat bin_transcripts(const Rcpp::CharacterVector& unique_spot_names, const Rcpp::CharacterVector& unique_gene_names, const Rcpp::CharacterVector& assignment_mole_names, const Rcpp::CharacterVector& assignment_spot_names, const Rcpp::CharacterVector& feature_mole_names, const Rcpp::CharacterVector& feature_gene_names, const int thread_num, const bool verbose);
+RcppExport SEXP _BinXenium_bin_transcripts(SEXP unique_spot_namesSEXP, SEXP unique_gene_namesSEXP, SEXP assignment_mole_namesSEXP, SEXP assignment_spot_namesSEXP, SEXP feature_mole_namesSEXP, SEXP feature_gene_namesSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type unique_spot_names(unique_spot_namesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type unique_gene_names(unique_gene_namesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type assignment_mole_names(assignment_mole_namesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type assignment_spot_names(assignment_spot_namesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type feature_mole_names(feature_mole_namesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::CharacterVector& >::type feature_gene_names(feature_gene_namesSEXP);
+    Rcpp::traits::input_parameter< const int >::type thread_num(thread_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(bin_transcripts(unique_spot_names, unique_gene_names, assignment_mole_names, assignment_spot_names, feature_mole_names, feature_gene_names, thread_num, verbose));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BinXenium_assign2visium_spots", (DL_FUNC) &_BinXenium_assign2visium_spots, 6},
     {"_BinXenium_assign2visium_subspots", (DL_FUNC) &_BinXenium_assign2visium_subspots, 10},
+    {"_BinXenium_bin_transcripts", (DL_FUNC) &_BinXenium_bin_transcripts, 8},
     {NULL, NULL, 0}
 };
 

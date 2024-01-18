@@ -20,20 +20,6 @@
 
 template<typename T>
 void
-create_spot_map(
-    const Rcpp::CharacterVector &barcodes,
-    std::map<std::string, T> &spot_map
-) {
-    if (spot_map.size() > 0) spot_map.clear();
-
-    for (T i = 0; i < static_cast<T>(barcodes.length()); i++) {
-        spot_map.emplace(std::make_pair(barcodes[i], i));
-    }
-}
-
-
-template<typename T>
-void
 create_spot_subspots(
     const arma::umat &subspot_ids,
     const Rcpp::CharacterVector &subspot_assigned_barcodes,
@@ -124,7 +110,7 @@ assign2visium_subspots(
 
     // build the index of spots to extract the coordinates in `img_spot_coords`
     std::map<std::string, arma::uword> spot_map;
-    create_spot_map(spot_barcodes, spot_map);
+    build_index(spot_barcodes, spot_map);
 
     // build a map from spot to subspots
     std::map<std::string, SpotSubspots<arma::uword, arma::uword>> spot_subspot_map;
@@ -154,7 +140,7 @@ assign2visium_subspots(
         }
     };
 
-#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in)
+#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in) initializer(omp_priv = omp_orig)
 
     // assign molecules to subspots
 #pragma omp parallel for shared(pb, mole_coords, spot_map, spot_subspot_map, mole_assigned_barcodes, img_spot_coords, spot_radius) reduction(red_assign:assignment)
