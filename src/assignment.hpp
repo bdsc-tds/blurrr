@@ -61,9 +61,6 @@ public:
         other.add_ambi_assigned(v1.get_ambi_assigned_mole(), v1.get_ambi_assigned_to());
         other.add_ambi_assigned(v2.get_ambi_assigned_mole(), v2.get_ambi_assigned_to());
 
-        other.add_assign_to_count(v1.get_assign_to_count());
-        other.add_assign_to_count(v2.get_assign_to_count());
-
         return std::move(other);
     }
 
@@ -188,17 +185,7 @@ Assignment<M, S, C>::add_assigned(const M &mole, const S &to) {
     this->assigned_mole.emplace_back(mole);
     this->assigned_to.emplace_back(to);
 
-    const auto it = this->assign_to_count.find(to);
-    if (it == this->assign_to_count.end()) {
-        this->assign_to_count.emplace(
-            std::make_pair(
-                to,
-                static_cast<C>(1)
-            )
-        );
-    } else {
-        (it->second)++;
-    }
+    this->add_assign_to_count(to, static_cast<C>(1));
 }
 
 template <typename M, typename S, typename C>
@@ -267,7 +254,6 @@ Assignment<M, S, C> &
 Assignment<M, S, C>::operator+=(const Assignment<M, S, C> &v) {
     this->add_assigned(v.get_assigned_mole(), v.get_assigned_to());
     this->add_ambi_assigned(v.get_ambi_assigned_mole(), v.get_ambi_assigned_to());
-    this->add_assign_to_count(v.get_assign_to_count());
 
     return *this;
 }

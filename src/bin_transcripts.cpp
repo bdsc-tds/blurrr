@@ -13,53 +13,6 @@
 #include <omp.h>
 #endif
 
-template <typename T1, typename T2>
-std::map<T1, T2> &
-marge_maps(
-    std::map<T1, T2> &m1,
-    const std::map<T1, T2> &m2
-) {
-    for (auto it = m2.begin(); it != m2.end(); it++) {
-        const auto __it = m1.find(it->first);
-
-        if (__it != m1.end()) {
-            throw std::invalid_argument("Found duplicate elements.");
-        }
-
-        m1.insert(std::make_pair(
-            it->first,
-            it->second
-        ));
-    }
-
-    return m1;
-}
-
-template <typename T>
-std::vector<T> &
-merge_vector(
-    std::vector<T> &v1,
-    const std::vector<T> &v2
-) {
-    v1.insert(v1.end(), v2.begin(), v2.end());
-
-    return v1;
-}
-
-template <typename T>
-arma::Mat<T> &
-merge_arma_mat(
-    arma::Mat<T> &m1,
-    const arma::Mat<T> &m2
-) {
-    if (m1.n_rows != m2.n_rows || m1.n_cols != m2.n_cols) {
-        throw std::invalid_argument("Unmatched dimmensions of matrices.");
-    }
-
-    m1 = m1 + m2;
-
-    return m1;
-}
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5>
 void
@@ -173,7 +126,7 @@ bin_transcripts(
     std::vector<int> thread_hits;
 
 #ifdef _OPENMP
-    omp_set_max_active_levels(2);
+    omp_set_max_active_levels(1);
     omp_set_num_threads(thread_num);
 
     for (int i = 0; i < thread_num; i++)
@@ -205,9 +158,9 @@ bin_transcripts(
     // run time measurement
     double time_start, time_end_map2spot, time_end_map2feature, time_end_map2spot_feature, time_end_bin;
 
-#pragma omp declare reduction(red_m_a_f:std::vector<std::tuple<std::string, arma::uword, arma::uword>>:omp_out = merge_vector<std::tuple<std::string, arma::uword, arma::uword>>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+#pragma omp declare reduction(red_m_a_f:std::vector<std::tuple<std::string, arma::uword, arma::uword>>:omp_out = merge_vectors<std::tuple<std::string, arma::uword, arma::uword>>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
 
-#pragma omp declare reduction(red_mat:arma::Mat<arma::uword>:omp_out = merge_arma_mat<arma::uword>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+#pragma omp declare reduction(red_mat:arma::Mat<arma::uword>:omp_out = merge_arma_mats<arma::uword>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
 
 #ifdef _OPENMP
     time_start = omp_get_wtime();

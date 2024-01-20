@@ -4,6 +4,7 @@
 #include <RcppArmadillo.h>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 
 #include "assignment.hpp"
 
@@ -145,5 +146,77 @@ convert2arma_assign_to_count(const Assignment<S, T, T> &val, const bool base_1 =
 
     return ret;
 }
+
+template <typename T1, typename T2>
+std::map<T1, T2> &
+marge_maps(
+    std::map<T1, T2> &m1,
+    const std::map<T1, T2> &m2
+) {
+    for (auto it = m2.begin(); it != m2.end(); it++) {
+        const auto __it = m1.find(it->first);
+
+        if (__it != m1.end()) {
+            throw std::invalid_argument("Found duplicate elements.");
+        }
+
+        m1.insert(std::make_pair(
+            it->first,
+            it->second
+        ));
+    }
+
+    return m1;
+}
+
+template <typename T>
+std::vector<T> &
+merge_vectors(
+    std::vector<T> &v1,
+    const std::vector<T> &v2
+) {
+    v1.insert(v1.end(), v2.begin(), v2.end());
+
+    return v1;
+}
+
+template <typename T>
+std::vector<T> &
+merge_vectors(
+    std::vector<T> &v1,
+    const std::vector<T> &v2,
+    const bool remove_dups
+) {
+    if (!remove_dups) {
+        return merge_vectors(v1, v2);
+    }
+
+    for (T i: v2) {
+        const auto it = std::find(v1.begin(), v1.end(), i);
+
+        if (it == v1.end()) {
+            v1.emplace_back(i);
+        }
+    }
+
+    return v1;
+    
+}
+
+template <typename T>
+arma::Mat<T> &
+merge_arma_mats(
+    arma::Mat<T> &m1,
+    const arma::Mat<T> &m2
+) {
+    if (m1.n_rows != m2.n_rows || m1.n_cols != m2.n_cols) {
+        throw std::invalid_argument("Unmatched dimmensions of matrices.");
+    }
+
+    m1 = m1 + m2;
+
+    return m1;
+}
+
 
 #endif // BINXENIUM_UTILS_HPP

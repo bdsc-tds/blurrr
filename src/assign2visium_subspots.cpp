@@ -83,7 +83,7 @@ assign2visium_subspots(
     std::vector<int> thread_hits;
 
 #ifdef _OPENMP
-    omp_set_max_active_levels(2);
+    omp_set_max_active_levels(1);
     omp_set_num_threads(thread_num);
 
     for (int i = 0; i < thread_num; i++)
