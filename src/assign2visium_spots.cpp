@@ -13,33 +13,19 @@
 #include <omp.h>
 #endif
 
-
 template <typename T1, typename T2>
 void
-create_array_spots_1d(
+create_array_spots(
     const arma::umat &array_coords,
     const arma::mat &img_coords,
     std::vector<ArraySpots1D<T1, T2>> &array_cols,
-    std::vector<ArraySpots1D<T1, T2>> &array_rows,
-    std::vector<size_t> &thread_hits
+    std::vector<ArraySpots1D<T1, T2>> &array_rows
 ) {
-#pragma omp single
-{
     if (array_coords.n_rows != img_coords.n_rows || array_coords.n_cols != 2 || array_coords.n_cols != img_coords.n_cols) {
         throw std::invalid_argument("Invalid arguments.");
     }
-}
-
-#pragma omp declare reduction(red_vec_array_spots:std::vector<ArraySpots1D<T1, T2>>:omp_out = merge_vectors<ArraySpots1D<T1, T2>>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
-
-#pragma omp for reduction(red_vec_array_spots:array_cols, array_rows)
+    
     for (T2 i = 0; i < static_cast<T2>(array_coords.n_rows); i++) {
-
-#ifdef _OPENMP
-#pragma omp atomic update
-        thread_hits[omp_get_thread_num()]++;
-#endif
-
         const arma::urowvec __array_coords_i = array_coords.row(i);
         const arma::rowvec __img_coords_i = img_coords.row(i);
 
@@ -88,11 +74,8 @@ create_array_spots_1d(
         }
     }
 
-#pragma omp single
-{
     std::sort(array_cols.begin(), array_cols.end());
     std::sort(array_rows.begin(), array_rows.end());
-}
 }
 
 template <typename T1, typename T2>
@@ -187,42 +170,34 @@ assign2visium_spots(
     }
 #endif
 
-    // variables assigned in parallel
+    // run time measurement
+    double time_start_array_spots, time_end_array_spots, time_start_assignment, time_end_assignment;
+
     std::vector<ArraySpots1D<arma::uword, arma::uword>> array_cols;
     std::vector<ArraySpots1D<arma::uword, arma::uword>> array_rows;
-    Assignment<arma::uword, arma::uword, arma::uword> assignment;
-
-    // run time measurement
-    double time_start, time_end_array_spots, time_end_assignment;
-
-#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in) initializer(omp_priv = omp_orig)
-
-#pragma omp parallel shared(mole_coords, array_coords, img_coords, spot_radius)
-{
 
 #ifdef _OPENMP
-#pragma omp single
-{
-    time_start = omp_get_wtime();
-}
+    time_start_array_spots = omp_get_wtime();
 #endif
-
-    create_array_spots_1d(
+    create_array_spots(
         array_coords,
         img_coords,
         array_cols,
-        array_rows,
-        thread_hits
+        array_rows
     );
-
 #ifdef _OPENMP
-#pragma omp single
-{
     time_end_array_spots = omp_get_wtime();
-}
 #endif
 
-#pragma omp for reduction(red_assign:assignment) schedule(dynamic)
+    // variables assigned in parallel
+    Assignment<arma::uword, arma::uword, arma::uword> assignment;
+
+#pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in) initializer(omp_priv = omp_orig)
+
+#ifdef _OPENMP
+    time_start_assignment = omp_get_wtime();
+#endif
+#pragma omp parallel for reduction(red_assign:assignment) schedule(dynamic)
     for (arma::uword mole_idx = 0; mole_idx < mole_coords.n_rows; mole_idx++) {
 
 #ifdef _OPENMP
@@ -286,28 +261,19 @@ assign2visium_spots(
             }
         }
     }
-
 #ifdef _OPENMP
-#pragma omp single
-{
     time_end_assignment = omp_get_wtime();
-}
 #endif
-
-}
 
 #ifdef _OPENMP
     if (verbose) {
         print_thread_hits(thread_hits);
-    }
-#endif
 
-    if (verbose) {
-        std::cout << "[DEBUG] Mapping spots to arrays takes " << time_end_array_spots - time_start << " seconds.\n";
-        std::cout << "[DEBUG] Assigning molecules to spots takes " << time_end_assignment - time_end_array_spots << " seconds.\n";
-        std::cout << "[DEBUG] In total it takes " << time_end_assignment - time_start << " seconds.\n";
+        std::cout << "[DEBUG] [UNPARALLELIZED] Mapping spots to arrays takes " << time_end_array_spots - time_start_array_spots << " seconds.\n";
+        std::cout << "[DEBUG] [PARALLELIZED] Assigning molecules to spots takes " << time_end_assignment - time_start_assignment << " seconds.\n";
         std::cout << std::endl;
     }
+#endif
 
     return Rcpp::List::create(
         Rcpp::_["assignment2Spots"] = convert2arma_assigned(assignment),
