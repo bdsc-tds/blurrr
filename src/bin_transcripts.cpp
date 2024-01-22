@@ -20,28 +20,15 @@ build_bridged_idx(
     const T1 &keys,
     const T2 &vals,
     const std::map<T3, T4> &val_idx,
-    std::map<T5, T4> &idx,
-    std::vector<int> &thread_hits
+    std::map<T5, T4> &idx
 ) {
-#pragma omp single
-{
     if (keys.size() != vals.size()) {
         throw std::invalid_argument("Inputs are of different lengths.");
     }
 
-    if (idx.size() > 0) idx.clear();
-}
+    if (!idx.empty()) idx.clear();
 
-#pragma omp declare reduction(red_map:std::map<T5, T4>:omp_out=marge_maps<T5, T4>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
-
-#pragma omp for reduction(red_map:idx)
     for (size_t i = 0; i < static_cast<size_t>(keys.size()); i++) {
-
-#ifdef _OPENMP
-#pragma omp atomic update
-        thread_hits[omp_get_thread_num()]++;
-#endif
-
         const auto it_key = idx.find(static_cast<T5>(keys[i]));
         const auto it_val = val_idx.find(static_cast<T3>(vals[i]));
 
@@ -67,28 +54,15 @@ build_bridged_idx(
     const T2 &vals,
     const std::map<T3, T4> &val_idx,
     const std::map<T6, T4> &filter_map,
-    std::map<T5, T4> &idx,
-    std::vector<int> &thread_hits
+    std::map<T5, T4> &idx
 ) {
-#pragma omp single
-{
     if (keys.size() != vals.size()) {
         throw std::invalid_argument("Inputs are of different lengths.");
     }
 
-    if (idx.size() > 0) idx.clear();
-}
+    if (!idx.empty()) idx.clear();
 
-#pragma omp declare reduction(red_map:std::map<T5, T4>:omp_out=marge_maps<T5, T4>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
-
-#pragma omp for reduction(red_map:idx)
     for (size_t i = 0; i < static_cast<size_t>(keys.size()); i++) {
-
-#ifdef _OPENMP
-#pragma omp atomic update
-        thread_hits[omp_get_thread_num()]++;
-#endif
-
         const auto it_filter = filter_map.find(static_cast<T6>(keys[i]));
         if (it_filter == filter_map.end()) continue;
 
@@ -146,8 +120,6 @@ bin_transcripts(
     build_index(unique_gene_names, unique_gene_map);
 
     // variables assigned in parallel
-    std::map<std::string, arma::uword> assignment_map;
-    std::map<std::string, arma::uword> feature_map;
     std::vector<std::tuple<std::string, arma::uword, arma::uword>> mole_assignment_feature;
     arma::umat gene_by_spot_count(
         unique_gene_map.size(),
@@ -156,49 +128,48 @@ bin_transcripts(
     );
 
     // run time measurement
-    double time_start, time_end_map2spot, time_end_map2feature, time_end_map2spot_feature, time_end_bin;
+    double time_start_map, time_end_map, time_start_map2spot_feature, time_end_map2spot_feature, time_end_bin, time_end;
 
-#pragma omp declare reduction(red_m_a_f:std::vector<std::tuple<std::string, arma::uword, arma::uword>>:omp_out = merge_vectors<std::tuple<std::string, arma::uword, arma::uword>>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
-
-#pragma omp declare reduction(red_mat:arma::Mat<arma::uword>:omp_out = merge_arma_mats<arma::uword>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
-
+    // build maps for assignments and features
+    std::map<std::string, arma::uword> assignment_map;
+    std::map<std::string, arma::uword> feature_map;
 #ifdef _OPENMP
-    time_start = omp_get_wtime();
+    time_start_map = omp_get_wtime();
 #endif
-
-#pragma omp parallel shared(assignment_mole_names, assignment_spot_names, feature_mole_names, feature_gene_names, unique_spot_map, unique_gene_map)
-{
     build_bridged_idx(
         assignment_mole_names,
         assignment_spot_names,
         unique_spot_map,
-        assignment_map,
-        thread_hits
+        assignment_map
     );
-
-#ifdef _OPENMP
-#pragma omp single
-{
-    time_end_map2spot = omp_get_wtime();
-}
-#endif
 
     build_bridged_idx(
         feature_mole_names,
         feature_gene_names,
         unique_gene_map,
         assignment_map,
-        feature_map,
-        thread_hits
+        feature_map
     );
+#ifdef _OPENMP
+    time_end_map = omp_get_wtime();
+#endif
+
+// #pragma omp declare reduction(red_map:std::map<std::string, arma::uword>:omp_out=marge_maps<std::string, arma::uword>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+
+#pragma omp declare reduction(red_m_a_f:std::vector<std::tuple<std::string, arma::uword, arma::uword>>:omp_out = merge_vectors<std::tuple<std::string, arma::uword, arma::uword>>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+
+#pragma omp declare reduction(red_mat:arma::Mat<arma::uword>:omp_out = merge_arma_mats<arma::uword>(omp_out, omp_in)) initializer(omp_priv = omp_orig)
+
+#pragma omp parallel shared(assignment_mole_names, assignment_spot_names, feature_mole_names, feature_gene_names, unique_spot_map, unique_gene_map, assignment_map, feature_map)
+{
 
 #ifdef _OPENMP
 #pragma omp single
 {
-    time_end_map2feature = omp_get_wtime();
+    time_start_map2spot_feature = omp_get_wtime();
 }
-#endif
 
+#endif
 #pragma omp for reduction(red_m_a_f:mole_assignment_feature)
     for (size_t i = 0; i < static_cast<size_t>(assignment_mole_names.size()); i++) {
 
@@ -256,19 +227,18 @@ bin_transcripts(
 }
 
 #ifdef _OPENMP
-    if (verbose) {
-        print_thread_hits(thread_hits);
-    }
-#endif
+    time_end = omp_get_wtime();
 
     if (verbose) {
-        std::cout << "[DEBUG] Mapping molecules to (sub)spots takes " << time_end_map2spot - time_start << " seconds.\n";
-        std::cout << "[DEBUG] Mapping molecules to features takes " << time_end_map2feature - time_end_map2spot << " seconds.\n";
-        std::cout << "[DEBUG] Mapping molecules to (sub)spots and features takes " << time_end_map2spot_feature - time_end_map2feature << " seconds.\n";
+        print_thread_hits(thread_hits);
+
+        std::cout << "[DEBUG] [UNPARALLELIZED] Mapping molecules to (sub)spots and features takes " << time_end_map - time_start_map << " seconds.\n";
+        std::cout << "[DEBUG] [PARALLELIZED] Combining maps of molecules to (sub)spots and features takes " << time_end_map2spot_feature - time_start_map2spot_feature << " seconds.\n";
         std::cout << "[DEBUG] Binning moleculae per (sub)spot takes " << time_end_bin - time_end_map2spot_feature << " seconds.\n";
-        std::cout << "[DEBUG] In total it takes " << time_end_bin - time_start << " seconds.\n";
+        std::cout << "[DEBUG] In total it takes " << time_end - time_start_map << " seconds.\n";
         std::cout << std::endl;
     }
+#endif
     
     return gene_by_spot_count;
 }

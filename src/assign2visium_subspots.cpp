@@ -207,13 +207,11 @@ assign2visium_subspots(
 
     if (verbose) {
         print_thread_hits(thread_hits);
-    }
-#endif
 
-    if (verbose) {
-        std::cout << "[DEBUG] Assigning molecules to subspots takes " << time_end - time_start << " seconds.\n";
+        std::cout << "[DEBUG] [PARALLELIZED] Assigning molecules to subspots takes " << time_end - time_start << " seconds.\n";
         std::cout << std::endl;
     }
+#endif
 
     return Rcpp::List::create(
         Rcpp::_["assignment2Subspots"] = convert2arma_assigned(assignment),
