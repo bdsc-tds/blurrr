@@ -9,7 +9,14 @@
     cores = 1,
     verbose = TRUE
 ) {
-  .root <- file.path(dirname, "cell")
+  .root <- file.path(
+    dirname,
+    ifelse(
+      is.cell,
+      "cell",
+      "transcript"
+    )
+  )
   dir.create(.root, showWarnings = FALSE)
   
   if (is.cell) {
@@ -262,7 +269,13 @@
         "subspot",
         "spot"
       ),
-      "level aggregating resluts of Xenium cells to",
+      "level aggregating resluts of Xenium",
+      ifelse(
+        is.cell,
+        "cells",
+        "transcripts"
+      ),
+      "to",
       .root
     ))
   }
@@ -297,10 +310,10 @@
     
     assert_that(
       identical(colnames(binned), assigment.count[[barcode.label]]),
-      identical(rownames(binned), rownames(xn.sce))
+      identical(rownames(binned), rownames(xn))
     )
     
-    .features <- data.frame(rowData(xn.sce))
+    .features <- data.frame(rowData(xn))
   } else {
     .unique.spot.names <- assigment.count[[barcode.label]]
     .unique.gene.names <- unique(xn[["feature_name"]])

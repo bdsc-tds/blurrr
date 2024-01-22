@@ -4,8 +4,6 @@
 #include <algorithm>
 #include <vector>
 #include <map>
-#include <indicators/cursor_control.hpp>
-#include <indicators/progress_bar.hpp>
 
 #include "array_spots.hpp"
 #include "assignment.hpp"
@@ -23,7 +21,7 @@ create_array_spots_1d(
     const arma::mat &img_coords,
     std::vector<ArraySpots1D<T1, T2>> &array_cols,
     std::vector<ArraySpots1D<T1, T2>> &array_rows,
-    std::vector<int> &thread_hits
+    std::vector<size_t> &thread_hits
 ) {
 #pragma omp single
 {
@@ -165,7 +163,6 @@ get_candidate_spot_idx(
     );
 }
 
-
 // [[Rcpp::export]]
 Rcpp::List
 assign2visium_spots(
@@ -176,7 +173,7 @@ assign2visium_spots(
     const int thread_num = 1,
     const bool verbose = true
 ) {
-    std::vector<int> thread_hits;
+    std::vector<size_t> thread_hits;
 
 #ifdef _OPENMP
     omp_set_max_active_levels(1);
@@ -194,26 +191,6 @@ assign2visium_spots(
     std::vector<ArraySpots1D<arma::uword, arma::uword>> array_cols;
     std::vector<ArraySpots1D<arma::uword, arma::uword>> array_rows;
     Assignment<arma::uword, arma::uword, arma::uword> assignment;
-
-    // progress bar
-    indicators::show_console_cursor(false);
-    indicators::ProgressBar pb{
-        indicators::option::MaxProgress{mole_coords.n_rows - 1},
-        indicators::option::BarWidth{50},
-        indicators::option::Start{" ["},
-        indicators::option::Fill{"█"},
-        indicators::option::Lead{"█"},
-        indicators::option::Remainder{"-"},
-        indicators::option::End{"]"},
-        indicators::option::PrefixText{"Binning to spots"},
-        indicators::option::ForegroundColor{indicators::Color::blue},
-        indicators::option::ShowElapsedTime{true},
-        indicators::option::ShowRemainingTime{true},
-        indicators::option::FontStyles{
-            std::vector<indicators::FontStyle>{indicators::FontStyle::bold}
-        }
-    };
-    
 
     // run time measurement
     double time_start, time_end_array_spots, time_end_assignment;
@@ -245,15 +222,13 @@ assign2visium_spots(
 }
 #endif
 
-#pragma omp for reduction(red_assign:assignment)
+#pragma omp for reduction(red_assign:assignment) schedule(dynamic)
     for (arma::uword mole_idx = 0; mole_idx < mole_coords.n_rows; mole_idx++) {
 
 #ifdef _OPENMP
 #pragma omp atomic update
         thread_hits[omp_get_thread_num()]++;
 #endif
-
-        pb.tick();
 
         std::vector<arma::uword> candidate_spots_col;
         std::vector<arma::uword> candidate_spots_row;
@@ -271,14 +246,23 @@ assign2visium_spots(
         );
 
         if (!candidate_spots_col.empty() && !candidate_spots_row.empty()) {
-            candidate_spots_col = merge_vectors(
-                candidate_spots_col,
-                candidate_spots_row,
-                true
+            std::sort(candidate_spots_col.begin(), candidate_spots_col.end());
+            std::sort(candidate_spots_row.begin(), candidate_spots_row.end());
+
+            std::set<arma::uword> candidate_spots;
+            std::set_intersection(
+                candidate_spots_col.begin(),
+                candidate_spots_col.end(),
+                candidate_spots_row.begin(),
+                candidate_spots_row.end(),
+                std::inserter(
+                    candidate_spots,
+                    candidate_spots.begin()
+                )
             );
 
             std::vector<arma::uword> __assigned_idx_moles, __assigned_idx_spots;
-            for (auto it = candidate_spots_col.begin(); it != candidate_spots_col.end(); it++) {
+            for (auto it = candidate_spots.begin(); it != candidate_spots.end(); it++) {
                 if (is_in_spot(
                     mole_coords.row(mole_idx),
                     img_coords.row(*it),
@@ -312,8 +296,6 @@ assign2visium_spots(
 
 }
 
-    indicators::show_console_cursor(true);
-
 #ifdef _OPENMP
     if (verbose) {
         print_thread_hits(thread_hits);
@@ -324,6 +306,7 @@ assign2visium_spots(
         std::cout << "[DEBUG] Mapping spots to arrays takes " << time_end_array_spots - time_start << " seconds.\n";
         std::cout << "[DEBUG] Assigning molecules to spots takes " << time_end_assignment - time_end_array_spots << " seconds.\n";
         std::cout << "[DEBUG] In total it takes " << time_end_assignment - time_start << " seconds.\n";
+        std::cout << std::endl;
     }
 
     return Rcpp::List::create(

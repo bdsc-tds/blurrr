@@ -5,8 +5,6 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <indicators/cursor_control.hpp>
-#include <indicators/progress_bar.hpp>
 
 #include "spot_subspots.hpp"
 #include "subspots.hpp"
@@ -121,37 +119,23 @@ assign2visium_subspots(
         spot_subspot_map
     );
 
-    // progress bar
-    indicators::show_console_cursor(false);
-    indicators::ProgressBar pb{
-        indicators::option::MaxProgress{mole_coords.n_rows - 1},
-        indicators::option::BarWidth{50},
-        indicators::option::Start{" ["},
-        indicators::option::Fill{"█"},
-        indicators::option::Lead{"█"},
-        indicators::option::Remainder{"-"},
-        indicators::option::End{"]"},
-        indicators::option::PrefixText{"Binning to subspots"},
-        indicators::option::ForegroundColor{indicators::Color::blue},
-        indicators::option::ShowElapsedTime{true},
-        indicators::option::ShowRemainingTime{true},
-        indicators::option::FontStyles{
-            std::vector<indicators::FontStyle>{indicators::FontStyle::bold}
-        }
-    };
+    // run time measurement
+    double time_start, time_end;
 
 #pragma omp declare reduction(red_assign:Assignment<arma::uword, arma::uword, arma::uword>:omp_out += omp_in) initializer(omp_priv = omp_orig)
 
+#ifdef _OPENMP
+    time_start = omp_get_wtime();
+#endif
+
     // assign molecules to subspots
-#pragma omp parallel for shared(pb, mole_coords, spot_map, spot_subspot_map, mole_assigned_barcodes, img_spot_coords, spot_radius) reduction(red_assign:assignment)
+#pragma omp parallel for shared(mole_coords, spot_map, spot_subspot_map, mole_assigned_barcodes, img_spot_coords, spot_radius) reduction(red_assign:assignment)
     for (arma::uword idx = 0; idx < mole_coords.n_rows; idx++) {
 
 #ifdef _OPENMP
 #pragma omp atomic update
         thread_hits[omp_get_thread_num()]++;
 #endif
-
-        pb.tick();
 
         const auto it_spot = spot_map.find(
             static_cast<std::string>(mole_assigned_barcodes[idx])
@@ -218,13 +202,18 @@ assign2visium_subspots(
         }
     }
 
-    indicators::show_console_cursor(true);
-
 #ifdef _OPENMP
+    time_end = omp_get_wtime();
+
     if (verbose) {
         print_thread_hits(thread_hits);
     }
 #endif
+
+    if (verbose) {
+        std::cout << "[DEBUG] Assigning molecules to subspots takes " << time_end - time_start << " seconds.\n";
+        std::cout << std::endl;
+    }
 
     return Rcpp::List::create(
         Rcpp::_["assignment2Subspots"] = convert2arma_assigned(assignment),
