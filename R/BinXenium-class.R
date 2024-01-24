@@ -6,7 +6,7 @@
 BinXenium <- function(
     vs.dir,
     xn.dir,
-    bin.mode = c("cell", "trans", "both"),
+    bin.mole = c("cell", "trans", "both"),
     bin.level = c("spot", "subspot"),
     rm.feat.in.trans.pat = c("^NegControl.*", "^BLANK.*"),
     rot.mtx = NULL,
@@ -23,7 +23,7 @@ BinXenium <- function(
     !all(is.null(c(rot.mtx, aligned.cells.file, aligned.trans.file)))
   )
   
-  bin.mode <- match.arg(bin.mode)
+  bin.mole <- match.arg(bin.mole)
   bin.level <- match.arg(bin.level)
   rot.mtx.to <- match.arg(rot.mtx.to)
   aligned.cells.to <- match.arg(aligned.cells.to)
@@ -32,7 +32,7 @@ BinXenium <- function(
   vs.info <- .load_visium_info(vs.dir)
   
   xn.cell <- NULL
-  if (bin.mode %in% c("cell", "both")) {
+  if (bin.mole %in% c("cell", "both")) {
     xn.cell <- .load_xenium_molecular(
       xn.dir = xn.dir,
       rm.feat.in.trans.pat = NULL,
@@ -51,7 +51,7 @@ BinXenium <- function(
   }
   
   xn.trans <- NULL
-  if (bin.mode %in% c("trans", "both")) {
+  if (bin.mole %in% c("trans", "both")) {
     xn.trans <- .load_xenium_molecular(
       xn.dir = xn.dir,
       rm.feat.in.trans.pat = rm.feat.in.trans.pat,

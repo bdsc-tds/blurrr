@@ -55,6 +55,29 @@ setGeneric(
 
 #' @export
 setGeneric(
+  "subset2assigned",
+  function(
+    x,
+    mole = c("cell", "trans"),
+    level = c("spot", "subspot")
+  ) standardGeneric("subset2assigned")
+)
+
+
+#' @export
+setGeneric(
+  "plot_mole",
+  function(
+    x,
+    mole = c("cell", "trans"),
+    mode = c("raw", "assigned", "both"),
+    res = c("fullres", "hires", "lowres")
+  ) standardGeneric("plot_mole")
+)
+
+
+#' @export
+setGeneric(
   "save2disk",
   function(x, dirname, cores = 1, cache = FALSE, verbose = TRUE) standardGeneric("save2disk")
 )

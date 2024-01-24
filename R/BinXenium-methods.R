@@ -1,5 +1,27 @@
+#' @name BinXenium-methods
+#' 
+#' @title Methods for class `BinXenium`
+#' 
+#' @aliases
+#' get_vsInfo
+#' get_xnCell
+#' get_xnTrans
+#' get_is2Subspot
+#' get_assignedXnCell
+#' get_assignedXnTrans
+#' assign2visium
+#' subset2assigned
+#' plot_mole
+#' save2disk
+#' 
+#' @description 
+#' 
+NULL
+
 # getters ---------------------------------------------
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -10,6 +32,8 @@ setMethod(
 )
 
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -20,6 +44,8 @@ setMethod(
 )
 
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -30,6 +56,8 @@ setMethod(
 )
 
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -40,6 +68,8 @@ setMethod(
 )
 
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -50,6 +80,8 @@ setMethod(
 )
 
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -60,8 +92,10 @@ setMethod(
 )
 
 
-# others ---------------------------------------------
+# assign2visium ---------------------------------------------
 
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -160,6 +194,185 @@ setMethod(
 )
 
 
+# subset2assigned ---------------------------------------------
+
+#' @rdname BinXenium-methods
+#'
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr right_join select
+setMethod(
+  "subset2assigned",
+  c("BinXenium", "character", "character"),
+  function(
+    x,
+    mole = c("cell", "trans"),
+    level = c("spot", "subspot")
+  ) {
+    mole = match.arg(mole)
+    level = match.arg(level)
+    
+    if (mole == "cell") {
+      assert_that(!is.null(get_xnCell(x)))
+      
+      if (level == "spot") {
+        assert_that(
+          !is.null(get_assignment2Spots(x, TRUE))
+        )
+        
+        .filtered <- get_assignment2Spots(x, TRUE)
+      } else {
+        assert_that(
+          get_is2Subspot(x),
+          !is.null(get_assignment2Subspots(x, TRUE))
+        )
+        
+        .filtered <- get_assignment2Subspots(x, TRUE)
+      }
+      
+      is.cell <- TRUE
+      .id <- "cell_id"
+    } else {
+      assert_that(!is.null(get_xnTrans(x)))
+      
+      if (level == "spot") {
+        assert_that(
+          !is.null(get_assignment2Spots(x, FALSE))
+        )
+        
+        .filtered <- get_assignment2Spots(x, FALSE)
+      } else {
+        assert_that(
+          get_is2Subspot(x),
+          !is.null(get_assignment2Subspots(x, FALSE))
+        )
+        
+        .filtered <- get_assignment2Subspots(x, FALSE)
+      }
+      
+      is.cell <- FALSE
+      .id <- "transcript_id"
+    }
+    
+    new(
+      "XeniumMolecule",
+      pos = get_xnPos(x, is.cell) %>%
+        right_join(
+          .filtered %>%
+            select(id),
+          by = setNames(nm = .id, "id")
+        ),
+      rotMtx = NULL,
+      alignedFile = NULL
+    )
+  }
+)
+
+
+# plot_mole ---------------------------------------------
+
+#' @rdname BinXenium-methods
+#'
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+#'
+#' @importFrom assertthat assert_that
+#' @importFrom ggpubr ggarrange
+setMethod(
+  "plot_mole",
+  c("BinXenium", "character", "character", "character"),
+  function(
+    x,
+    mole = c("cell", "trans"),
+    mode = c("raw", "assigned", "both"),
+    res = c("fullres", "hires", "lowres")
+  ) {
+    mole = match.arg(mole)
+    mode = match.arg(mode)
+    res = match.arg(res)
+    
+    if (mole == "cell" && mode %in% c("raw", "both")) {
+      assert_that(!is.null(get_xnCell(x)))
+      is.cell <- TRUE
+      .raw.data <- get_xnCell(x)
+    }
+    
+    if (mole == "cell" && mode %in% c("assigned", "both")) {
+      assert_that(!is.null(get_assignedXnCell(x)))
+      is.cell <- TRUE
+      .assigned.data <- get_assignedXnCell(x)
+    }
+    
+    if (mole == "trans" && mode %in% c("raw", "both")) {
+      assert_that(!is.null(get_xnTrans(x)))
+      is.cell <- FALSE
+      .raw.data <- get_xnTrans(x)
+    }
+    
+    if (mole == "trans" && mode %in% c("assigned", "both")) {
+      assert_that(!is.null(get_assignedXnTrans(x)))
+      is.cell <- FALSE
+      .assigned.data <- get_assignedXnTrans(x)
+    }
+    
+    # plot background
+    .bg <- .plot_bg(
+      vs.info = get_vsInfo(x),
+      res = res
+    )
+    
+    raw.plot <- NULL
+    if (mode %in% c("raw", "both")) {
+      raw.plot <- .bg + .plot_mole(
+        mole.data = get_xnPos(x, is.cell),
+        is.cell = is.cell,
+        res = res
+      )
+      
+      if (mode == "raw") {
+        return(raw.plot)
+      }
+    }
+    
+    assigned.plot <- NULL
+    if (mode %in% c("assigned", "both")) {
+      assigned.plot <- .bg + .plot_mole(
+        mole.data = get_xnPos(
+          subset2assigned(
+            x = x,
+            mole = mole,
+            level = "spot"
+          )
+        ),
+        is.cell = is.cell,
+        res = res
+      )
+      
+      if (mode == "raw") {
+        return(assigned.plot)
+      }
+    }
+    
+    return(
+      ggarrange(
+        raw.plot,
+        assigned.plot,
+        ncol = 2
+      )
+    )
+  }
+)
+
+
+# save2disk ---------------------------------------------
+
+#' @rdname BinXenium-methods
+#'
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -214,7 +427,6 @@ setMethod(
   }
 )
 
-
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -231,7 +443,6 @@ setMethod(
     )
   }
 )
-
 
 #' @include generic-def.R class-def.R
 #' 
@@ -250,7 +461,6 @@ setMethod(
   }
 )
 
-
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -267,7 +477,6 @@ setMethod(
     )
   }
 )
-
 
 #' @include generic-def.R class-def.R
 #' 
@@ -286,7 +495,6 @@ setMethod(
   }
 )
 
-
 #' @include generic-def.R class-def.R
 #' 
 #' @export
@@ -303,7 +511,6 @@ setMethod(
     )
   }
 )
-
 
 #' @include generic-def.R class-def.R
 #' 
