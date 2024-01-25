@@ -207,11 +207,12 @@ setMethod(
 #' @importFrom dplyr right_join select
 setMethod(
   "subset2assigned",
-  c("BinXenium", "character", "character"),
+  c("BinXenium", "character", "character", "numeric"),
   function(
     x,
     mole = c("cell", "trans"),
-    level = c("spot", "subspot")
+    level = c("spot", "subspot"),
+    subspot.idx = seq_len(6)
   ) {
     mole = match.arg(mole)
     level = match.arg(level)
@@ -231,7 +232,7 @@ setMethod(
           !is.null(get_assignment2Subspots(x, TRUE))
         )
         
-        .filtered <- get_assignment2Subspots(x, TRUE)
+        .filtered <- get_assignment2Subspot(x, TRUE, subspot.idx)
       }
       
       is.cell <- TRUE
@@ -251,7 +252,7 @@ setMethod(
           !is.null(get_assignment2Subspots(x, FALSE))
         )
         
-        .filtered <- get_assignment2Subspots(x, FALSE)
+        .filtered <- get_assignment2Subspot(x, FALSE, subspot.idx)
       }
       
       is.cell <- FALSE
@@ -272,6 +273,25 @@ setMethod(
   }
 )
 
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "subset2assigned",
+  c("BinXenium", "character", "missing", "missing"),
+  function(
+    x,
+    mole = c("cell", "trans"),
+    level = "spot",
+    subspot.idx
+  ) subset2assigned(
+    x = x,
+    mole = mole,
+    level = "spot",
+    subspot.idx = -1
+  )
+)
+
 
 # plot_mole ---------------------------------------------
 
@@ -283,18 +303,63 @@ setMethod(
 #'
 #' @importFrom assertthat assert_that
 #' @importFrom ggpubr ggarrange
+#' @importFrom ggplot2 labs
+#' @importFrom purrr compact
 setMethod(
   "plot_mole",
-  c("BinXenium", "character", "character", "character"),
+  c("BinXenium", "character", "character", "character", "numeric", "character"),
   function(
     x,
     mole = c("cell", "trans"),
     mode = c("raw", "assigned", "both"),
-    res = c("fullres", "hires", "lowres")
+    level = c("spot", "subspot"),
+    subspot.idx = seq_len(6),
+    res = c("fullres", "hires", "lowres"),
+    ...
   ) {
     mole = match.arg(mole)
     mode = match.arg(mode)
     res = match.arg(res)
+    
+    args <- list(...)
+    bg.args <- list(
+      colour = NULL,
+      size = NULL
+    )
+    mole.args <- list(
+      colour = NULL,
+      size = NULL,
+      alpha = NULL
+    )
+    arrange.args <- list(
+      ncol = NULL,
+      nrow = NULL,
+      align = NULL
+    )
+    
+    bg.args <- compact(sapply(
+      names(bg.args),
+      function(x) {
+        args[[paste("bg", x, sep = ".")]]
+      },
+      simplify = FALSE
+    ))
+    
+    mole.args <- compact(sapply(
+      names(mole.args),
+      function(x) {
+        args[[paste("mole", x, sep = ".")]]
+      },
+      simplify = FALSE
+    ))
+    
+    arrange.args <- compact(sapply(
+      names(arrange.args),
+      function(x) {
+        args[[paste("arrange", x, sep = ".")]]
+      },
+      simplify = FALSE
+    ))
     
     if (mole == "cell" && mode %in% c("raw", "both")) {
       assert_that(!is.null(get_xnCell(x)))
@@ -321,51 +386,130 @@ setMethod(
     }
     
     # plot background
-    .bg <- .plot_bg(
-      vs.info = get_vsInfo(x),
-      res = res
+    .bg <- do.call(
+      .plot_bg,
+      c(
+        list(
+          vs.info = get_vsInfo(x),
+          res = res
+        ),
+        bg.args
+      )
     )
     
+    # plot the original, aligned molecules
     raw.plot <- NULL
     if (mode %in% c("raw", "both")) {
-      raw.plot <- .bg + .plot_mole(
-        mole.data = get_xnPos(x, is.cell),
-        is.cell = is.cell,
-        res = res
-      )
+      raw.plot <- .bg + do.call(
+        .plot_mole,
+        c(
+          list(
+            mole.data = get_xnPos(x, is.cell),
+            is.cell = is.cell,
+            res = res
+          ),
+          mole.args
+        )
+      ) +
+        labs(
+          title = "Unassigned"
+        )
       
       if (mode == "raw") {
         return(raw.plot)
       }
     }
     
+    # plot the assigned molecules
     assigned.plot <- NULL
     if (mode %in% c("assigned", "both")) {
-      assigned.plot <- .bg + .plot_mole(
-        mole.data = get_xnPos(
-          subset2assigned(
-            x = x,
-            mole = mole,
-            level = "spot"
+      assigned.plot <- lapply(
+        subspot.idx,
+        function(.idx) .bg + do.call(
+          .plot_mole,
+          c(
+            list(
+              mole.data = get_xnPos(
+                subset2assigned(
+                  x = x,
+                  mole = mole,
+                  level = level,
+                  subspot.idx = .idx
+                )
+              ),
+              is.cell = is.cell,
+              res = res
+            ),
+            mole.args
           )
-        ),
-        is.cell = is.cell,
-        res = res
+        ) + labs(
+          title = paste(
+            "Assigned to",
+            ifelse(
+              level == "spot",
+              "spots",
+              paste(
+                "subspots",
+                .idx
+              )
+            )
+          )
+        )
       )
       
-      if (mode == "raw") {
-        return(assigned.plot)
+      if (mode == "assigned") {
+        if (length(subspot.idx) == 1) {
+          return(assigned.plot[[1]])
+        } else {
+          return(do.call(
+            ggarrange,
+            c(
+              assigned.plot,
+              arrange.args
+            )
+          ))
+        }
       }
     }
     
-    return(
-      ggarrange(
-        raw.plot,
+    return(do.call(
+      ggarrange,
+      c(
+        list(
+          raw.plot
+        ),
         assigned.plot,
-        ncol = 2
+        arrange.args
       )
-    )
+    ))
   }
+)
+
+#' @rdname BinXenium-methods
+#'
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "plot_mole",
+  c("BinXenium", "character", "character", "missing", "missing", "character"),
+  function(
+    x,
+    mole = c("cell", "trans"),
+    mode = c("raw", "assigned", "both"),
+    level = "spot",
+    subspot.idx = -1,
+    res = c("fullres", "hires", "lowres"),
+    ...
+  ) plot_mole(
+    x = x,
+    mole = mole,
+    mode = mode,
+    level = "spot",
+    subspot.idx = -1,
+    res = res,
+    ...
+  )
 )
 
 

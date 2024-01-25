@@ -3,7 +3,12 @@
 #' @importFrom assertthat assert_that
 #' @importFrom ggplot2 ggplot aes coord_fixed scale_x_continuous scale_y_reverse labs theme_bw
 #' @importFrom ggforce geom_circle
-.plot_bg <- function(vs.info, res = c("hires", "lowres", "fullres")) {
+.plot_bg <- function(
+    vs.info,
+    res = c("hires", "lowres", "fullres"),
+    colour = "salmon",
+    size = 0.1
+  ) {
   assert_that(identical(class(vs.info)[[1]], "VisiumInfo"))
   
   res <- match.arg(res)
@@ -23,7 +28,8 @@
         y0 = !!as.name(.names[["y"]]),
         r = .radius
       ),
-      colour = "salmon",
+      colour = colour,
+      size = size,
       data = get_vsPos(vs.info)
     ) +
     coord_fixed() +
@@ -43,7 +49,14 @@
 #' 
 #' @importFrom assertthat assert_that
 #' @importFrom ggplot2 geom_point aes
-.plot_mole <- function(mole.data, is.cell, res = c("hires", "lowres", "fullres")) {
+.plot_mole <- function(
+    mole.data,
+    is.cell,
+    res = c("hires", "lowres", "fullres"),
+    colour = "steelblue",
+    size = 1e-15,
+    alpha = 0.8
+) {
   res <- match.arg(res)
   
   .names <- get_coords_names(
@@ -57,9 +70,9 @@
       x = !!as.name(.names[["x"]]),
       y = !!as.name(.names[["y"]])
     ),
-    size = 1e-3,
-    colour = "steelblue",
-    alpha = 0.2,
+    size = size,
+    colour = colour,
+    alpha = alpha,
     data = mole.data
   )
 }

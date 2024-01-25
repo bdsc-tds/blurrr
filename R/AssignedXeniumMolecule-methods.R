@@ -41,6 +41,37 @@ setMethod(
 #' @include generic-def.R class-def.R
 #' 
 #' @export
+#' 
+#' @importFrom assertthat assert_that
+#' @importFrom magrittr `%>%`
+#' @importFrom dplyr mutate filter select
+#' @importFrom stringr str_split_i
+setMethod(
+  "get_assignment2Subspot",
+  c("AssignedXeniumMolecule", "missing", "numeric"),
+  function(x, is.cell, subspot.idx) {
+    assert_that(subspot.idx %in% seq_len(6))
+    
+    x@assignment2Subspots %>%
+      mutate(
+        subspot_idx = str_split_i(
+          subspot_barcode_bayesspace,
+          ":",
+          -1
+        )
+      ) %>%
+      filter(
+        subspot_idx == !!subspot.idx
+      ) %>%
+      select(
+        -subspot_idx
+      )
+  }
+)
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
 setMethod(
   "get_ambiAssignment2Subspots",
   c("AssignedXeniumMolecule", "missing"),
@@ -124,6 +155,27 @@ setMethod(
       return(get_assignment2Subspots(get_assignedXnCell(x)))
     } else {
       return(get_assignment2Subspots(get_assignedXnTrans(x)))
+    }
+  }
+)
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_assignment2Subspot",
+  c("BinXenium", "logical", "numeric"),
+  function(x, is.cell, subspot.idx) {
+    if (is.cell) {
+      return(get_assignment2Subspot(
+        get_assignedXnCell(x),
+        subspot.idx = subspot.idx
+      ))
+    } else {
+      return(get_assignment2Subspot(
+        get_assignedXnTrans(x),
+        subspot.idx = subspot.idx
+      ))
     }
   }
 )

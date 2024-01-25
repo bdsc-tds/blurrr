@@ -59,7 +59,8 @@ setGeneric(
   function(
     x,
     mole = c("cell", "trans"),
-    level = c("spot", "subspot")
+    level = c("spot", "subspot"),
+    subspot.idx = seq_len(6)
   ) standardGeneric("subset2assigned")
 )
 
@@ -71,7 +72,10 @@ setGeneric(
     x,
     mole = c("cell", "trans"),
     mode = c("raw", "assigned", "both"),
-    res = c("fullres", "hires", "lowres")
+    level = c("spot", "subspot"),
+    subspot.idx = seq_len(6),
+    res = c("fullres", "hires", "lowres"),
+    ...
   ) standardGeneric("plot_mole")
 )
 
@@ -170,6 +174,12 @@ setGeneric(
 setGeneric(
   "get_assignment2Subspots",
   function(x, is.cell) standardGeneric("get_assignment2Subspots")
+)
+
+#' @export
+setGeneric(
+  "get_assignment2Subspot",
+  function(x, is.cell, subspot.idx) standardGeneric("get_assignment2Subspot")
 )
 
 #' @export
