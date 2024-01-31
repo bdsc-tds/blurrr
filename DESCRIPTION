@@ -1,5 +1,5 @@
-Package: BinXenium
-Title: Bin Xenium data according to a matching Visium expetiment
+Package: blurrr
+Title: Blur the resolution of your dataset
 Version: 0.0.1
 Date: 2024-01-04
 Authors@R: c(

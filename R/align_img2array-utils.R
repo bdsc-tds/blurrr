@@ -1,4 +1,7 @@
+#' Align the coordinate system of image to that of array.
 #' 
+#' This alignment is mainly for the acceleration of assigning molecules to
+#' spots.
 #' 
 #' @keywords internal
 #' 

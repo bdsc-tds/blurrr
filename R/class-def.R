@@ -5,8 +5,9 @@ setClassUnion("NullOrDataFrame", c("NULL", "data.frame"))
 
 #' @export
 setClass(
-  "VisiumInfo",
+  "Template",
   slots = c(
+    type = "character",
     pos = "data.frame",
     arrayDirec = "list",
     imgRad = "numeric",
@@ -18,54 +19,38 @@ setClass(
 
 #' @export
 setClass(
-  "XeniumMolecule",
+  "Molecule",
   slots = c(
+    type = "character",
     pos = "data.frame",
     rotMtx = "NullOrMatrix",
     alignedFile = "NullOrCharacter"
   )
 )
-setClassUnion("NullOrXeniumMolecule", c("NULL", "XeniumMolecule"))
-
-
-#' @export
-#' 
-#' @importClassesFrom SingleCellExperiment SingleCellExperiment
-setClass(
-  "XeniumCell",
-  slots = c(
-    sce = "SingleCellExperiment"
-  ),
-  contains = c("XeniumMolecule")
-)
-setClassUnion("NullOrXeniumCell", c("NULL", "XeniumCell"))
+setClassUnion("NullOrMolecule", c("NULL", "Molecule"))
 
 
 #' @export
 setClass(
-  "AssignedXeniumMolecule",
+  "MappedMolecule",
   slots = c(
-    assignment2Spots = "NullOrDataFrame",
-    ambiAssignment2Spots = "NullOrDataFrame",
-    countOfSpots = "NullOrDataFrame",
-    assignment2Subspots = "NullOrDataFrame",
-    ambiAssignment2Subspots = "NullOrDataFrame",
-    countOfSubspots = "NullOrDataFrame",
+    map = "NullOrDataFrame",
+    mapInDoubt = "NullOrDataFrame",
+    cnt = "NullOrDataFrame",
     propAssigned = "numeric"
   )
 )
-setClassUnion("NullOrAssignedXeniumMolecule", c("NULL", "AssignedXeniumMolecule"))
+setClassUnion("NullOrMappedMolecule", c("NULL", "MappedMolecule"))
 
 
 #' @export
 setClass(
-  "BinXenium",
+  "Blurrr",
   slots = c(
-    vsInfo = "VisiumInfo",
-    xnCell = "NullOrXeniumCell",
-    xnTrans = "NullOrXeniumMolecule",
+    template = "Template",
+    molecule = "Molecule",
     is2Subspot = "logical",
-    assignedXnCell = "NullOrAssignedXeniumMolecule",
-    assignedXnTrans = "NullOrAssignedXeniumMolecule"
+    mappedMolecule = "NullOrMappedMolecule",
+    mappedMolecule2subspot = "NullOrMappedMolecule"
   )
 )
