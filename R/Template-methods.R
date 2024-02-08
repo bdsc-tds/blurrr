@@ -1,13 +1,23 @@
 # getters ---------------------------------------------
 
-## For `VisiumInfo` ---------------------------------------------
+## For `Template` ---------------------------------------------
 
 #' @include generic-def.R class-def.R
 #' 
 #' @export
 setMethod(
-  "get_vsPos",
-  c("VisiumInfo"),
+  "get_templateType",
+  c("Template"),
+  function(x) x@type
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_pos",
+  c("Template"),
   function(x) x@pos
 )
 
@@ -17,7 +27,7 @@ setMethod(
 #' @export
 setMethod(
   "get_arrayDirec",
-  c("VisiumInfo", "character"),
+  c("Template", "character"),
   function(x, key = c("row", "col", "both")) {
     key = match.arg(key)
     
@@ -42,7 +52,7 @@ setMethod(
 #' @export
 setMethod(
   "get_imgRad",
-  "VisiumInfo",
+  "Template",
   function(x) x@imgRad
 )
 
@@ -52,7 +62,7 @@ setMethod(
 #' @export
 setMethod(
   "get_scalef",
-  c("VisiumInfo", "character"),
+  c("Template", "character"),
   function(x, key = c("hires", "lowres", "diameter")) {
     key = match.arg(key)
     
@@ -80,20 +90,30 @@ setMethod(
 #' @export
 setMethod(
   "get_subspotPos",
-  "VisiumInfo",
+  "Template",
   function(x) x@subspotPos
 )
 
 
-## For `BinXenium` ---------------------------------------------
+## For `Blurrr` ---------------------------------------------
 
 #' @include generic-def.R class-def.R
 #' 
 #' @export
 setMethod(
-  "get_vsPos",
-  c("BinXenium"),
-  function(x) get_vsPos(get_vsInfo(x))
+  "get_templateType",
+  c("Blurrr"),
+  function(x) get_templateType(get_template(x))
+)
+
+
+#' @include generic-def.R class-def.R
+#' 
+#' @export
+setMethod(
+  "get_pos",
+  c("Blurrr"),
+  function(x) get_pos(get_template(x))
 )
 
 
@@ -102,8 +122,8 @@ setMethod(
 #' @export
 setMethod(
   "get_arrayDirec",
-  c("BinXenium", "character"),
-  function(x, key) get_arrayDirec(get_vsInfo(x), key)
+  c("Blurrr", "character"),
+  function(x, key) get_arrayDirec(get_template(x), key)
 )
 
 
@@ -112,8 +132,8 @@ setMethod(
 #' @export
 setMethod(
   "get_imgRad",
-  "BinXenium",
-  function(x) get_imgRad(get_vsInfo(x))
+  "Blurrr",
+  function(x) get_imgRad(get_template(x))
 )
 
 
@@ -122,8 +142,8 @@ setMethod(
 #' @export
 setMethod(
   "get_scalef",
-  c("BinXenium", "character"),
-  function(x, key) get_scalef(get_vsInfo(x), key)
+  c("Blurrr", "character"),
+  function(x, key) get_scalef(get_template(x), key)
 )
 
 
@@ -132,6 +152,6 @@ setMethod(
 #' @export
 setMethod(
   "get_subspotPos",
-  "BinXenium",
-  function(x) get_subspotPos(get_vsInfo(x))
+  "Blurrr",
+  function(x) get_subspotPos(get_template(x))
 )

@@ -2,7 +2,7 @@
 #' 
 #' @importFrom assertthat assert_that
 #' @importFrom rjson fromJSON
-.load_blur_template(
+.load_blur_template <- function(
   dirname,
   blur = c("visium", "visium_hd"),
   blur2subspot = FALSE
@@ -12,7 +12,7 @@
   if (blur == "visium") {
     assert_that(grepl(".*outs$", dirname))
   } else {
-    assert_that(grepl(".*square_\d+um$", dirname))
+    assert_that(grepl(".*square_\\d+um$", dirname))
   }
   
   dirname <- file.path(dirname, "spatial")
@@ -45,7 +45,7 @@
   pos <- .scale_coords(
     data = pos,
     coord.names = get_coords_names(
-      is.molecule = FALSE,
+      type = blur,
       use.names = "f"
     )[[1]],
     avail = "fullres",
@@ -60,11 +60,11 @@
     data = pos,
     radians = image.rad,
     prev.cols = get_coords_names(
-      is.molecule = FALSE,
+      type = blur,
       use.names = "f"
     ),
     transformed.cols = get_coords_names(
-      is.molecule = FALSE,
+      type = blur,
       prefix = "array_aligned",
       use.names = "f"
     )
@@ -80,7 +80,7 @@
       spot.coords = pos[c(
         "barcode",
         get_coords_names(
-          is.molecule = FALSE,
+          type = blur,
           use.names = "f"
         )[[1]]
       )],
@@ -88,6 +88,7 @@
     )
   }
   
+  # constructor
   new(
     "Template",
     type = blur,
@@ -103,7 +104,7 @@
 #' @keywords internal
 #' 
 #' TODO
-.create_blur_template() {}
+.create_blur_template <- function() {}
 
 
 #' @keywords internal
@@ -403,7 +404,7 @@
     spot.coords
 ) {
   .spot.coords.names <- get_coords_names(
-    is.molecule = FALSE,
+    type = "visium",
     use.names = "f"
   )[[1]]
   
@@ -420,7 +421,7 @@
   subspot.pos <- .create_subspots_visium()
   
   .new.coords.names <- get_coords_names(
-    is.molecule = FALSE,
+    type = "visium",
     prefix = "subspot",
     use.names = "f"
   )[[1]]

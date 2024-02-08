@@ -9,7 +9,7 @@
 #' 
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr mutate lead
-.create_subspots <- function() {
+.create_subspots_visium <- function() {
   data.frame(
     subspot_id = seq_len(6),
     subspot_id_bayesspace = c(1, 5, 3, 4, 6, 2),
@@ -40,24 +40,30 @@
 #'
 #' @importFrom assertthat assert_that
 get_coords_names <- function(
-    is.xn,
-    is.cell = TRUE,
+    type = c("xenium_cell", "xenium_transcript", "visium", "visium_hd"),
     is.subspot = FALSE,
     prefix = NULL,
     use.names = c("r", "f", "h", "l")
 ) {
   assert_that(is.null(prefix) || is.character(prefix))
   
+  type <- match.arg(type)
+  
   .names <- c("raw", "fullres", "hires", "lowres")
   use.names <- match.arg(use.names, .names, several.ok = TRUE)
   
-  if (is.xn) {
-    if (is.cell) {
+  coords.names <- NULL
+  if (grepl("^xenium", type)) {
+    if (grepl("cell$", type)) {
       coords.names <- c(x = "x_centroid", y = "y_centroid")
-    } else {
+    }
+    
+    if (grepl("transcript$", type)) {
       coords.names <- c(x = "x_location", y = "y_location")
     }
-  } else {
+  }
+  
+  if (grepl("^visium", type)) {
     coords.names <- c(x = "pxl_col_in", y = "pxl_row_in")
     
     if (is.subspot) {
@@ -65,6 +71,8 @@ get_coords_names <- function(
       use.names = "fullres"
     }
   }
+  
+  assert_that(!is.null(coords.names))
   
   sapply(
     setNames(nm = use.names),
@@ -81,6 +89,24 @@ get_coords_names <- function(
     },
     simplify = FALSE
   )
+}
+
+
+#' @keywords internal
+.get_identifier_name <- function(type) {
+  if (grepl("^visium", type)) {
+    return("barcode")
+  }
+  
+  if (type == "xenium_cell") {
+    return("cell_id")
+  }
+  
+  if (type == "xenium_transcript") {
+    return("transcript_id")
+  }
+  
+  return(NULL)
 }
 
 

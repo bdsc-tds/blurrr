@@ -1,25 +1,18 @@
-# `BinXenium` methods ---------------------------------------------
+# `Blurrr` methods ---------------------------------------------
 
 ## getters ---------------------------------------------
 
 #' @export
 setGeneric(
-  "get_vsInfo",
-  function(x) standardGeneric("get_vsInfo")
+  "get_template",
+  function(x) standardGeneric("get_template")
 )
 
 
 #' @export
 setGeneric(
-  "get_xnCell",
-  function(x) standardGeneric("get_xnCell")
-)
-
-
-#' @export
-setGeneric(
-  "get_xnTrans",
-  function(x) standardGeneric("get_xnTrans")
+  "get_molecule",
+  function(x) standardGeneric("get_molecule")
 )
 
 
@@ -32,15 +25,15 @@ setGeneric(
 
 #' @export
 setGeneric(
-  "get_assignedXnCell",
-  function(x) standardGeneric("get_assignedXnCell")
+  "get_mappedMolecule",
+  function(x) standardGeneric("get_mappedMolecule")
 )
 
 
 #' @export
 setGeneric(
-  "get_assignedXnTrans",
-  function(x) standardGeneric("get_assignedXnTrans")
+  "get_mappedMolecule2subspot",
+  function(x) standardGeneric("get_mappedMolecule2subspot")
 )
 
 
@@ -48,8 +41,8 @@ setGeneric(
 
 #' @export
 setGeneric(
-  "assign2visium",
-  function(x, cores, force = FALSE, verbose = TRUE) standardGeneric("assign2visium")
+  "assign2template",
+  function(x, cores, force = FALSE, verbose = TRUE) standardGeneric("assign2template")
 )
 
 
@@ -87,12 +80,18 @@ setGeneric(
 )
 
 
-# `VisiumInfo` methods ---------------------------------------------
+# `Template` methods ---------------------------------------------
 
 #' @export
 setGeneric(
-  "get_vsPos",
-  function(x) standardGeneric("get_vsPos")
+  "get_templateType",
+  function(x) standardGeneric("get_templateType")
+)
+
+#' @export
+setGeneric(
+  "get_pos",
+  function(x) standardGeneric("get_pos")
 )
 
 #' @export
@@ -123,79 +122,47 @@ setGeneric(
 )
 
 
-# `XeniumMolecule` methods ---------------------------------------------
+# `Molecule` methods ---------------------------------------------
 
 #' @export
 setGeneric(
-  "get_xnPos",
-  function(x, is.cell) standardGeneric("get_xnPos")
+  "get_moleculeType",
+  function(x) standardGeneric("get_moleculeType")
 )
 
 
 #' @export
 setGeneric(
-  "get_xn_id",
-  function(x, is.cell) standardGeneric("get_xn_id")
+  "get_sce",
+  function(x) standardGeneric("get_sce")
 )
 
 
-# `XeniumCell` methods ---------------------------------------------
+# `MappedMolecule` methods ---------------------------------------------
 
 #' @export
 setGeneric(
-  "get_xn_sce",
-  function(x) standardGeneric("get_xn_sce")
-)
-
-
-# `AssignedXeniumMolecule` methods ---------------------------------------------
-
-#' @export
-setGeneric(
-  "get_assignment2Spots",
-  function(x, is.cell) standardGeneric("get_assignment2Spots")
+  "get_map",
+  function(x) standardGeneric("get_map")
 )
 
 
 #' @export
 setGeneric(
-  "get_ambiAssignment2Spots",
-  function(x, is.cell) standardGeneric("get_ambiAssignment2Spots")
+  "get_mapInDoubt",
+  function(x) standardGeneric("get_mapInDoubt")
 )
 
 
 #' @export
 setGeneric(
-  "get_countOfSpots",
-  function(x, is.cell) standardGeneric("get_countOfSpots")
+  "get_cnt",
+  function(x) standardGeneric("get_cnt")
 )
 
-#' @export
-setGeneric(
-  "get_assignment2Subspots",
-  function(x, is.cell) standardGeneric("get_assignment2Subspots")
-)
-
-#' @export
-setGeneric(
-  "get_assignment2Subspot",
-  function(x, is.cell, subspot.idx) standardGeneric("get_assignment2Subspot")
-)
-
-#' @export
-setGeneric(
-  "get_ambiAssignment2Subspots",
-  function(x, is.cell) standardGeneric("get_ambiAssignment2Subspots")
-)
-
-#' @export
-setGeneric(
-  "get_countOfSubspots",
-  function(x, is.cell) standardGeneric("get_countOfSubspots")
-)
 
 #' @export
 setGeneric(
   "get_propAssigned",
-  function(x, is.cell) standardGeneric("get_propAssigned")
+  function(x) standardGeneric("get_propAssigned")
 )

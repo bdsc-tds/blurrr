@@ -22,7 +22,7 @@ setClass(
   "Molecule",
   slots = c(
     type = "character",
-    pos = "data.frame",
+    sce = "SingleCellExperiment",
     rotMtx = "NullOrMatrix",
     alignedFile = "NullOrCharacter"
   )
