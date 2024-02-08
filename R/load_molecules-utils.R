@@ -190,7 +190,7 @@ NULL
 #' 
 #' @importFrom arrow read_parquet
 #' @importFrom data.table fread
-#' @importFrom assertthat assertthat
+#' @importFrom assertthat assert_that
 .load_spatial_coords <- function(type, filename, nrows) {
   if (grepl("^xenium", type)) {
     ret <- fread(
@@ -397,7 +397,7 @@ NULL
 #' 
 #' @importFrom assertthat assert_that
 #' @importFrom magrittr `%>%`
-#' @importFrom dplyr mutate, filter select
+#' @importFrom dplyr mutate filter select
 .create_sce_h5 <- function(filename, col.data, rm.mole.feats.pat) {
   assert_that(
     file.exists(filename)
