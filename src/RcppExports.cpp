@@ -13,7 +13,7 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 
 // assign2visium_spots
 Rcpp::List assign2visium_spots(const arma::mat& mole_coords, const arma::umat& array_coords, const arma::mat& img_coords, const double spot_radius, const int thread_num, const bool verbose);
-RcppExport SEXP _BinXenium_assign2visium_spots(SEXP mole_coordsSEXP, SEXP array_coordsSEXP, SEXP img_coordsSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _blurrr_assign2visium_spots(SEXP mole_coordsSEXP, SEXP array_coordsSEXP, SEXP img_coordsSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -29,7 +29,7 @@ END_RCPP
 }
 // assign2visium_subspots
 Rcpp::List assign2visium_subspots(const arma::mat& mole_coords, const Rcpp::CharacterVector& mole_assigned_barcodes, const arma::umat& subspot_ids, const arma::mat& img_subspot_coords, const Rcpp::CharacterVector& subspot_assigned_barcodes, const arma::mat& img_spot_coords, const Rcpp::CharacterVector& spot_barcodes, const double spot_radius, const int thread_num, const bool verbose);
-RcppExport SEXP _BinXenium_assign2visium_subspots(SEXP mole_coordsSEXP, SEXP mole_assigned_barcodesSEXP, SEXP subspot_idsSEXP, SEXP img_subspot_coordsSEXP, SEXP subspot_assigned_barcodesSEXP, SEXP img_spot_coordsSEXP, SEXP spot_barcodesSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _blurrr_assign2visium_subspots(SEXP mole_coordsSEXP, SEXP mole_assigned_barcodesSEXP, SEXP subspot_idsSEXP, SEXP img_subspot_coordsSEXP, SEXP subspot_assigned_barcodesSEXP, SEXP img_spot_coordsSEXP, SEXP spot_barcodesSEXP, SEXP spot_radiusSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -49,7 +49,7 @@ END_RCPP
 }
 // bin_transcripts
 arma::umat bin_transcripts(const Rcpp::CharacterVector& unique_spot_names, const Rcpp::CharacterVector& unique_gene_names, const Rcpp::CharacterVector& assignment_mole_names, const Rcpp::CharacterVector& assignment_spot_names, const Rcpp::CharacterVector& feature_mole_names, const Rcpp::CharacterVector& feature_gene_names, const int thread_num, const bool verbose);
-RcppExport SEXP _BinXenium_bin_transcripts(SEXP unique_spot_namesSEXP, SEXP unique_gene_namesSEXP, SEXP assignment_mole_namesSEXP, SEXP assignment_spot_namesSEXP, SEXP feature_mole_namesSEXP, SEXP feature_gene_namesSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
+RcppExport SEXP _blurrr_bin_transcripts(SEXP unique_spot_namesSEXP, SEXP unique_gene_namesSEXP, SEXP assignment_mole_namesSEXP, SEXP assignment_spot_namesSEXP, SEXP feature_mole_namesSEXP, SEXP feature_gene_namesSEXP, SEXP thread_numSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -67,13 +67,13 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BinXenium_assign2visium_spots", (DL_FUNC) &_BinXenium_assign2visium_spots, 6},
-    {"_BinXenium_assign2visium_subspots", (DL_FUNC) &_BinXenium_assign2visium_subspots, 10},
-    {"_BinXenium_bin_transcripts", (DL_FUNC) &_BinXenium_bin_transcripts, 8},
+    {"_blurrr_assign2visium_spots", (DL_FUNC) &_blurrr_assign2visium_spots, 6},
+    {"_blurrr_assign2visium_subspots", (DL_FUNC) &_blurrr_assign2visium_subspots, 10},
+    {"_blurrr_bin_transcripts", (DL_FUNC) &_blurrr_bin_transcripts, 8},
     {NULL, NULL, 0}
 };
 
-RcppExport void R_init_BinXenium(DllInfo *dll) {
+RcppExport void R_init_blurrr(DllInfo *dll) {
     R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
     R_useDynamicSymbols(dll, FALSE);
 }

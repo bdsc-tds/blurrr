@@ -2,7 +2,7 @@
 #' 
 #' @importFrom magrittr `%>%`
 #' @importFrom dplyr rename mutate left_join select
-.assign2visium <- function(
+.assign2template <- function(
     assigned.xn,
     vs.pos,
     xn.pos,

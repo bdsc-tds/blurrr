@@ -31,17 +31,17 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 RoxygenNote: 7.3.1
 Collate: 
+    'Blurrr-class.R'
     'class-def.R'
     'generic-def.R'
-    'AssignedXeniumMolecule-methods.R'
-    'Blurrr-class.R'
     'Blurrr-methods.R'
     'Blurrr.R'
+    'MappedMolecule-methods.R'
     'Molecule-methods.R'
     'RcppExports.R'
     'Template-methods.R'
     'align_img2array-utils.R'
-    'assign2visium-utils.R'
+    'assign2template-utils.R'
     'blur_template-utils.R'
     'load_molecules-utils.R'
     'plot_mole-utils.R'

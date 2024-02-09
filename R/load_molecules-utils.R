@@ -231,7 +231,7 @@ NULL
   
   assert_that(file.exists(fname))
   
-  NULL
+  fname
 }
 
 
@@ -323,24 +323,24 @@ NULL
   assert_that(file.exists(filename))
   
   .non.zero.indices <- .extract_indices(
-    h5read(h5read, "matrix/indices"),
-    h5read(h5read, "matrix/indptr")
+    h5read(filename, "matrix/indices"),
+    h5read(filename, "matrix/indptr")
   )
   
   .row.data <- data.frame(
-    gene_id = h5read(h5_file, "matrix/features/id"),
-    gene_name = h5read(h5_file, "matrix/features/name")
+    gene_id = h5read(filename, "matrix/features/id"),
+    gene_name = h5read(filename, "matrix/features/name")
   ) %>%
     column_to_rownames("gene_id")
   
   .counts <- sparseMatrix(
     i = .non.zero.indices$i,
     j = .non.zero.indices$j,
-    x = h5read(h5_file, "matrix/data"),
-    dims = h5read(h5_file, "matrix/shape"),
+    x = h5read(filename, "matrix/data"),
+    dims = h5read(filename, "matrix/shape"),
     dimnames = list(
       rownames(.row.data),
-      h5read(h5_file, "matrix/barcodes")
+      h5read(filename, "matrix/barcodes")
     ),
     index1 = FALSE
   )

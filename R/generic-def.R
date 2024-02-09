@@ -32,8 +32,57 @@ setGeneric(
 
 #' @export
 setGeneric(
+  "get_spot_map",
+  function(x) standardGeneric("get_spot_map")
+)
+
+
+#' @export
+setGeneric(
+  "get_spot_mapInDoubt",
+  function(x) standardGeneric("get_spot_mapInDoubt")
+)
+
+
+#' @export
+setGeneric(
+  "get_spot_cnt",
+  function(x) standardGeneric("get_spot_cnt")
+)
+
+
+#' @export
+setGeneric(
   "get_mappedMolecule2subspot",
   function(x) standardGeneric("get_mappedMolecule2subspot")
+)
+
+
+#' @export
+setGeneric(
+  "get_subspot_map",
+  function(x, idx) standardGeneric("get_subspot_map")
+)
+
+
+#' @export
+setGeneric(
+  "get_subspot_mapInDoubt",
+  function(x) standardGeneric("get_subspot_mapInDoubt")
+)
+
+
+#' @export
+setGeneric(
+  "get_subspot_cnt",
+  function(x) standardGeneric("get_subspot_cnt")
+)
+
+
+#' @export
+setGeneric(
+  "get_propAssigned",
+  function(x) standardGeneric("get_propAssigned")
 )
 
 
@@ -143,7 +192,7 @@ setGeneric(
 #' @export
 setGeneric(
   "get_map",
-  function(x) standardGeneric("get_map")
+  function(x, idx) standardGeneric("get_map")
 )
 
 

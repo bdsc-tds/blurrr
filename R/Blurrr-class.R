@@ -117,7 +117,7 @@ Blurrr <- function(
         mole = mole,
         rm.mole.feats.pat = rm.mole.feats.pat
       ),
-      .parse_extra_args_mole(args)
+      .parse_extra_args_mole(.args)
     )
   )
   
